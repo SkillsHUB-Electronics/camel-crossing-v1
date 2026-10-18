@@ -1,0 +1,662 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 1540" width="1640" height="1540" font-family="Segoe UI, system-ui, Arial, sans-serif">
+<rect width="1640" height="1540" fill="#ffffff"/>
+<text x="40" y="45" font-size="24" text-anchor="start" font-weight="bold" fill="#111827">Camel Crossing Highway Safety (Camel Guard) — Wiring Diagram</text>
+<text x="40" y="68" font-size="13" text-anchor="start" font-weight="normal" fill="#4b5563">Miniature simulator · firmware 2.3.1 · camel gate: 2× IR obstacle + PIR · cars: 2× HC-SR04 at the 400 m points · 2× 74HC595 (one per direction) · buzzer · solar panel + battery measured by 2× INA219 (I2C)</text>
+<rect x="620" y="270" width="260" height="570" rx="10" fill="#1f2937" stroke="#1f2937" stroke-width="1.5"/>
+<text x="750" y="258" font-size="14" text-anchor="middle" font-weight="bold" fill="#111827">ESP32 DevKit V1 (30-pin)</text>
+<rect x="690" y="380" width="120" height="150" rx="4" fill="#374151" stroke="#6b7280" stroke-width="1.5"/>
+<text x="750" y="450" font-size="11" text-anchor="middle" font-weight="bold" fill="#e5e7eb">ESP-WROOM-32</text>
+<text x="750" y="468" font-size="10" text-anchor="middle" font-weight="normal" fill="#9ca3af">(top view)</text>
+<rect x="728" y="826" width="44" height="26" rx="3" fill="#9ca3af" stroke="#9ca3af" stroke-width="1.5"/>
+<text x="750" y="870" font-size="11" text-anchor="middle" font-weight="bold" fill="#4b5563">USB</text>
+<circle cx="620" cy="300" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="304" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">EN</text>
+<circle cx="620" cy="336" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="340" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">VP</text>
+<circle cx="620" cy="372" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="376" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">VN</text>
+<circle cx="620" cy="408" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="412" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">D34</text>
+<circle cx="620" cy="444" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="448" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">D35</text>
+<circle cx="620" cy="480" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="484" font-size="12" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D32</text>
+<circle cx="620" cy="516" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="520" font-size="12" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D33</text>
+<circle cx="620" cy="552" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="556" font-size="12" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D25</text>
+<circle cx="620" cy="588" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="592" font-size="12" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D26</text>
+<circle cx="620" cy="624" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="628" font-size="12" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D27</text>
+<circle cx="620" cy="660" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="664" font-size="12" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D14</text>
+<circle cx="620" cy="696" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="700" font-size="12" text-anchor="start" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">D12</text>
+<circle cx="620" cy="732" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="736" font-size="12" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D13</text>
+<circle cx="620" cy="768" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="772" font-size="12" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">GND</text>
+<circle cx="620" cy="804" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="632" y="808" font-size="12" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">VIN</text>
+<circle cx="880" cy="300" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="304" font-size="12" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D23</text>
+<circle cx="880" cy="336" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="340" font-size="12" text-anchor="end" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">D22</text>
+<circle cx="880" cy="372" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="376" font-size="12" text-anchor="end" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">TX0</text>
+<circle cx="880" cy="408" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="412" font-size="12" text-anchor="end" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">RX0</text>
+<circle cx="880" cy="444" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="448" font-size="12" text-anchor="end" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">D21</text>
+<circle cx="880" cy="480" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="484" font-size="12" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D19</text>
+<circle cx="880" cy="516" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="520" font-size="12" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D18</text>
+<circle cx="880" cy="552" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="556" font-size="12" text-anchor="end" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">D5</text>
+<circle cx="880" cy="588" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="592" font-size="12" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D17</text>
+<circle cx="880" cy="624" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="628" font-size="12" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D16</text>
+<circle cx="880" cy="660" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="664" font-size="12" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D4</text>
+<circle cx="880" cy="696" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="700" font-size="12" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">D2</text>
+<circle cx="880" cy="732" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="736" font-size="12" text-anchor="end" font-weight="normal" fill="#6b7280" font-family="Consolas, monospace">D15</text>
+<circle cx="880" cy="768" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="772" font-size="12" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">GND</text>
+<circle cx="880" cy="804" r="5" fill="#d1d5db" stroke="#9ca3af"/>
+<text x="868" y="808" font-size="12" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">3V3</text>
+<polyline points="620,768 594,768" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="565.5" y="760" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="579.75" y="772" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="620,804 594,804" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="572.0" y="796" width="22.0" height="16" rx="3" fill="#dc2626"/>
+<text x="583.0" y="808" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">5V</text>
+<text x="670" y="808" font-size="10" text-anchor="start" font-weight="normal" fill="#9ca3af">(5 V in)</text>
+<polyline points="880,768 906,768" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="906" y="760" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="920.25" y="772" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="880,804 906,804" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="906" y="796" width="28.5" height="16" rx="3" fill="#ea580c"/>
+<text x="920.25" y="808" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">3V3</text>
+<text x="892" y="713" font-size="9" text-anchor="start" font-weight="normal" fill="#9ca3af">(onboard LED)</text>
+<rect x="30" y="88" width="270" height="76" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+<text x="42" y="108" font-size="13.5" text-anchor="start" font-weight="bold" fill="#111827">Power: solar panel + 18650 battery</text>
+<text x="42" y="125" font-size="10.5" text-anchor="start" font-weight="normal" fill="#4b5563">TP4056 → 18650 → MT3608 → 5 V (VIN)</text>
+<text x="42" y="141" font-size="10.5" text-anchor="start" font-weight="normal" fill="#4b5563">2× INA219 on I2C: D17 = SDA · D16 = SCL</text>
+<text x="42" y="156" font-size="10" text-anchor="start" font-weight="bold" fill="#b45309">see the power path at the bottom of the page</text>
+<rect x="30" y="174" width="270" height="120" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="42" y="194" font-size="13.5" text-anchor="start" font-weight="bold" fill="#111827">HC-SR04 — VEHICLE A</text>
+<text x="42" y="210" font-size="10.5" text-anchor="start" font-weight="normal" fill="#4b5563">side-A · 400 m point · beside the lane, across</text>
+<text x="292" y="200" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VCC</text>
+<text x="292" y="220" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">TRIG</text>
+<text x="292" y="246" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">ECHO</text>
+<text x="292" y="272" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">GND</text>
+<polyline points="300,196 322,196" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="322" y="188" width="22.0" height="16" rx="3" fill="#dc2626"/>
+<text x="333.0" y="200" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">5V</text>
+<polyline points="300,268 322,268" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="322" y="260" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="336.25" y="272" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="300,216 570,216 570,480 620,480" fill="none" stroke="#65a30d" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="300,242 318,242" fill="none" stroke="#4d7c0f" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="318" y="236" width="40" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<text x="338.0" y="232" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151">1 kΩ</text>
+<polyline points="358,242 410,242" fill="none" stroke="#4d7c0f" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="410" cy="242" r="4" fill="#4d7c0f"/>
+<polyline points="410,242 410,250" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="404" y="250" width="12" height="26" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<text x="420" y="267.0" font-size="10" text-anchor="start" font-weight="bold" fill="#374151">2 kΩ</text>
+<polyline points="410,276 410,286" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="396" y="286" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="410.25" y="298" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="410,242 550,242 550,516 620,516" fill="none" stroke="#4d7c0f" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="30" y="304" width="270" height="132" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="42" y="324" font-size="13.5" text-anchor="start" font-weight="bold" fill="#111827">Buzzer (active, 5 V)</text>
+<text x="42" y="340" font-size="10.5" text-anchor="start" font-weight="normal" fill="#4b5563">at the crossing · via NPN 2N2222</text>
+<rect x="92" y="348" width="22.0" height="16" rx="3" fill="#dc2626"/>
+<text x="103.0" y="360" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">5V</text>
+<polyline points="110,364 110,374" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="110" cy="386" r="12" fill="#111827"/>
+<text x="110" y="390" font-size="9" text-anchor="middle" font-weight="bold" fill="#ffffff">BZ</text>
+<polyline points="110,398 110,406 148,406" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="160" cy="414" r="14" fill="#ffffff" stroke="#374151" stroke-width="1.8"/>
+<polyline points="152,402 152,426" fill="none" stroke="#374151" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="152,408 164,402" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="152,420 166,427" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="176" y="432" font-size="9" text-anchor="start" font-weight="normal" fill="#374151">E→GND</text>
+<rect x="196" y="408" width="40" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<text x="216.0" y="404" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151">1 kΩ</text>
+<polyline points="152,414 196,414" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="236,414 300,414" fill="none" stroke="#0f766e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="300,414 530,414 530,552 620,552" fill="none" stroke="#0f766e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="30" y="446" width="270" height="120" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="42" y="466" font-size="13.5" text-anchor="start" font-weight="bold" fill="#111827">HC-SR04 — VEHICLE B</text>
+<text x="42" y="482" font-size="10.5" text-anchor="start" font-weight="normal" fill="#4b5563">side-B · 400 m point · beside the lane, across</text>
+<text x="292" y="472" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VCC</text>
+<text x="292" y="492" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">TRIG</text>
+<text x="292" y="518" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">ECHO</text>
+<text x="292" y="544" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">GND</text>
+<polyline points="300,468 322,468" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="322" y="460" width="22.0" height="16" rx="3" fill="#dc2626"/>
+<text x="333.0" y="472" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">5V</text>
+<polyline points="300,540 322,540" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="322" y="532" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="336.25" y="544" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="300,488 510,488 510,588 620,588" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="300,514 318,514" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="318" y="508" width="40" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<text x="338.0" y="504" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151">1 kΩ</text>
+<polyline points="358,514 410,514" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="410" cy="514" r="4" fill="#15803d"/>
+<polyline points="410,514 410,522" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="404" y="522" width="12" height="26" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<text x="420" y="539.0" font-size="10" text-anchor="start" font-weight="bold" fill="#374151">2 kΩ</text>
+<polyline points="410,548 410,558" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="396" y="558" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="410.25" y="570" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="410,514 490,514 490,624 620,624" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="30" y="576" width="270" height="76" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="42" y="596" font-size="13.5" text-anchor="start" font-weight="bold" fill="#111827">IR obstacle — CAMEL IR B</text>
+<text x="42" y="612" font-size="10.5" text-anchor="start" font-weight="normal" fill="#4b5563">camel gate · side-B edge of the crossing</text>
+<text x="292" y="602" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VCC</text>
+<text x="292" y="620" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">GND</text>
+<text x="292" y="638" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">OUT</text>
+<circle cx="230" cy="634" r="5" fill="#ef4444"/><circle cx="244" cy="634" r="5" fill="#111827"/>
+<polyline points="300,598 322,598" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="322" y="590" width="28.5" height="16" rx="3" fill="#ea580c"/>
+<text x="336.25" y="602" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">3V3</text>
+<polyline points="300,616 322,616" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="322" y="608" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="336.25" y="620" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="300,634 470,634 470,660 620,660" fill="none" stroke="#be185d" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="30" y="662" width="270" height="76" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="42" y="682" font-size="13.5" text-anchor="start" font-weight="bold" fill="#111827">IR obstacle — CAMEL IR A</text>
+<text x="42" y="698" font-size="10.5" text-anchor="start" font-weight="normal" fill="#4b5563">camel gate · side-A edge of the crossing</text>
+<text x="292" y="688" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VCC</text>
+<text x="292" y="706" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">GND</text>
+<text x="292" y="724" font-size="11" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">OUT</text>
+<circle cx="230" cy="720" r="5" fill="#ef4444"/><circle cx="244" cy="720" r="5" fill="#111827"/>
+<polyline points="300,684 322,684" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="322" y="676" width="28.5" height="16" rx="3" fill="#ea580c"/>
+<text x="336.25" y="688" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">3V3</text>
+<polyline points="300,702 322,702" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="322" y="694" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="336.25" y="706" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="300,720 450,720 450,732 620,732" fill="none" stroke="#db2777" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="42" y="758" font-size="10" text-anchor="start" font-weight="bold" fill="#b91c1c">HC-SR04 (cars): beside each lane at the 400 m point, pinging across.</text>
+<text x="42" y="772" font-size="10" text-anchor="start" font-weight="bold" fill="#b91c1c">ECHO is 5 V: never connect it to the ESP32 without the divider.</text>
+<rect x="30" y="788" width="500" height="158" rx="8" fill="#f9fafb" stroke="#9ca3af" stroke-width="1.5"/>
+<text x="42" y="808" font-size="12.5" text-anchor="start" font-weight="bold" fill="#111827">74HC595 pinout — DIP-16, top view (notch on the left)</text>
+<rect x="78" y="848" width="394" height="50" rx="4" fill="#1f2937"/>
+<path d="M78,863 A10,10 0 0 1 78,883" fill="#f9fafb"/>
+<text x="275.0" y="877" font-size="12" text-anchor="middle" font-weight="bold" fill="#e5e7eb">74HC595</text>
+<circle cx="92" cy="888" r="3" fill="#9ca3af"/>
+<rect x="95" y="838" width="10" height="10" fill="#9ca3af"/><rect x="95" y="898" width="10" height="10" fill="#9ca3af"/>
+<text x="100" y="860" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">16</text>
+<text x="100" y="894" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">1</text>
+<text x="100" y="832" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VCC</text>
+<text x="100" y="922" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">Q1</text>
+<rect x="145" y="838" width="10" height="10" fill="#9ca3af"/><rect x="145" y="898" width="10" height="10" fill="#9ca3af"/>
+<text x="150" y="860" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">15</text>
+<text x="150" y="894" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">2</text>
+<text x="150" y="832" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">Q0</text>
+<text x="150" y="922" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">Q2</text>
+<rect x="195" y="838" width="10" height="10" fill="#9ca3af"/><rect x="195" y="898" width="10" height="10" fill="#9ca3af"/>
+<text x="200" y="860" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">14</text>
+<text x="200" y="894" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">3</text>
+<text x="200" y="832" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">DS</text>
+<text x="200" y="922" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">Q3</text>
+<rect x="245" y="838" width="10" height="10" fill="#9ca3af"/><rect x="245" y="898" width="10" height="10" fill="#9ca3af"/>
+<text x="250" y="860" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">13</text>
+<text x="250" y="894" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">4</text>
+<text x="250" y="832" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">OE</text>
+<text x="250" y="922" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">Q4</text>
+<rect x="295" y="838" width="10" height="10" fill="#9ca3af"/><rect x="295" y="898" width="10" height="10" fill="#9ca3af"/>
+<text x="300" y="860" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">12</text>
+<text x="300" y="894" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">5</text>
+<text x="300" y="832" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">ST_CP</text>
+<text x="300" y="922" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">Q5</text>
+<rect x="345" y="838" width="10" height="10" fill="#9ca3af"/><rect x="345" y="898" width="10" height="10" fill="#9ca3af"/>
+<text x="350" y="860" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">11</text>
+<text x="350" y="894" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">6</text>
+<text x="350" y="832" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">SH_CP</text>
+<text x="350" y="922" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">Q6</text>
+<rect x="395" y="838" width="10" height="10" fill="#9ca3af"/><rect x="395" y="898" width="10" height="10" fill="#9ca3af"/>
+<text x="400" y="860" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">10</text>
+<text x="400" y="894" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">7</text>
+<text x="400" y="832" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">MR</text>
+<text x="400" y="922" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">Q7</text>
+<rect x="445" y="838" width="10" height="10" fill="#9ca3af"/><rect x="445" y="898" width="10" height="10" fill="#9ca3af"/>
+<text x="450" y="860" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">9</text>
+<text x="450" y="894" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#93c5fd" font-family="Consolas, monospace">8</text>
+<text x="450" y="832" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">Q7'</text>
+<text x="450" y="922" font-size="10" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">GND</text>
+<text x="42" y="939" font-size="9.5" text-anchor="start" font-weight="normal" fill="#6b7280">Pin 1 = dot / next to the notch. Blue numbers = pin numbers used in the diagram.</text>
+<rect x="1200" y="110" width="130" height="312" rx="6" fill="#1f2937" stroke="#1f2937" stroke-width="1.5"/>
+<text x="1265.0" y="98" font-size="14" text-anchor="middle" font-weight="bold" fill="#111827">74HC595 #1 — SIDE A (bits 0–7)</text>
+<text x="1265.0" y="406" font-size="10" text-anchor="middle" font-weight="bold" fill="#9ca3af">74HC595</text>
+<polyline points="1170,140 1200,140" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="135" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">14</text>
+<text x="1208" y="144" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">DS</text>
+<polyline points="1170,172 1200,172" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="167" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">12</text>
+<text x="1208" y="176" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">ST_CP</text>
+<polyline points="1170,204 1200,204" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="199" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">11</text>
+<text x="1208" y="208" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">SH_CP</text>
+<polyline points="1170,252 1200,252" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="247" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">10</text>
+<text x="1208" y="256" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">MR</text>
+<polyline points="1170,284 1200,284" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="279" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">13</text>
+<text x="1208" y="288" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">OE</text>
+<polyline points="1170,316 1200,316" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="311" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">16</text>
+<text x="1208" y="320" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">VCC</text>
+<polyline points="1170,348 1200,348" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="343" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">8</text>
+<text x="1208" y="352" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">GND</text>
+<polyline points="1170,252 1158,252" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1129.5" y="244" width="28.5" height="16" rx="3" fill="#ea580c"/>
+<text x="1143.75" y="256" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">3V3</text>
+<polyline points="1170,284 1158,284" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1129.5" y="276" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="1143.75" y="288" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="1170,316 1158,316" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1129.5" y="308" width="28.5" height="16" rx="3" fill="#ea580c"/>
+<text x="1143.75" y="320" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">3V3</text>
+<polyline points="1170,348 1158,348" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1129.5" y="340" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="1143.75" y="352" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<text x="1208" y="376" font-size="9" text-anchor="start" font-weight="normal" fill="#9ca3af">100 nF: 16 – 8</text>
+<polyline points="1330,140 1360,140" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="135" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">15</text>
+<text x="1322" y="144" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q0</text>
+<rect x="1366" y="134" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,140 1366,140" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,140 1402,140" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="140" r="8" fill="#ef4444" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="138" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Signal A — RED</text>
+<text x="1426" y="150" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,170 1360,170" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="165" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">1</text>
+<text x="1322" y="174" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q1</text>
+<rect x="1366" y="164" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,170 1366,170" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,170 1402,170" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="170" r="8" fill="#f59e0b" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="168" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Signal A — AMBER</text>
+<text x="1426" y="180" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,200 1360,200" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="195" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">2</text>
+<text x="1322" y="204" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q2</text>
+<rect x="1366" y="194" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,200 1366,200" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,200 1402,200" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="200" r="8" fill="#22c55e" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="198" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Signal A — GREEN</text>
+<text x="1426" y="210" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,230 1360,230" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="225" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">3</text>
+<text x="1322" y="234" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q3</text>
+<rect x="1366" y="224" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,230 1366,230" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,230 1402,230" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="230" r="8" fill="#fbbf24" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="228" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Warning 300 m — side A</text>
+<text x="1426" y="240" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,260 1360,260" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="255" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">4</text>
+<text x="1322" y="264" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q4</text>
+<rect x="1366" y="254" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,260 1366,260" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,260 1402,260" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="260" r="8" fill="#fbbf24" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="258" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Warning 200 m — side A</text>
+<text x="1426" y="270" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,290 1360,290" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="285" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">5</text>
+<text x="1322" y="294" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q5</text>
+<rect x="1366" y="284" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,290 1366,290" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,290 1402,290" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="290" r="8" fill="#fbbf24" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="288" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Warning 100 m — side A</text>
+<text x="1426" y="300" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,320 1360,320" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="315" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">6</text>
+<text x="1322" y="324" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q6</text>
+<rect x="1366" y="314" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,320 1366,320" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,320 1402,320" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="320" r="8" fill="#fbbf24" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="318" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Camel crossing sign A</text>
+<text x="1426" y="330" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,350 1360,350" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="345" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">7</text>
+<text x="1322" y="354" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q7</text>
+<text x="1368" y="354" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">spare (not connected)</text>
+<polyline points="1330,392 1360,392" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="387" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">9</text>
+<text x="1322" y="396" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q7'</text>
+<rect x="1200" y="500" width="130" height="312" rx="6" fill="#1f2937" stroke="#1f2937" stroke-width="1.5"/>
+<text x="1265.0" y="488" font-size="14" text-anchor="middle" font-weight="bold" fill="#111827">74HC595 #2 — SIDE B (bits 8–15)</text>
+<text x="1265.0" y="796" font-size="10" text-anchor="middle" font-weight="bold" fill="#9ca3af">74HC595</text>
+<polyline points="1170,530 1200,530" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="525" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">14</text>
+<text x="1208" y="534" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">DS</text>
+<polyline points="1170,562 1200,562" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="557" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">12</text>
+<text x="1208" y="566" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">ST_CP</text>
+<polyline points="1170,594 1200,594" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="589" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">11</text>
+<text x="1208" y="598" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">SH_CP</text>
+<polyline points="1170,642 1200,642" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="637" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">10</text>
+<text x="1208" y="646" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">MR</text>
+<polyline points="1170,674 1200,674" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="669" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">13</text>
+<text x="1208" y="678" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">OE</text>
+<polyline points="1170,706 1200,706" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="701" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">16</text>
+<text x="1208" y="710" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">VCC</text>
+<polyline points="1170,738 1200,738" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1185.0" y="733" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">8</text>
+<text x="1208" y="742" font-size="11" text-anchor="start" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">GND</text>
+<polyline points="1170,642 1158,642" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1129.5" y="634" width="28.5" height="16" rx="3" fill="#ea580c"/>
+<text x="1143.75" y="646" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">3V3</text>
+<polyline points="1170,674 1158,674" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1129.5" y="666" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="1143.75" y="678" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="1170,706 1158,706" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1129.5" y="698" width="28.5" height="16" rx="3" fill="#ea580c"/>
+<text x="1143.75" y="710" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">3V3</text>
+<polyline points="1170,738 1158,738" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1129.5" y="730" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="1143.75" y="742" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<text x="1208" y="766" font-size="9" text-anchor="start" font-weight="normal" fill="#9ca3af">100 nF: 16 – 8</text>
+<polyline points="1330,530 1360,530" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="525" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">15</text>
+<text x="1322" y="534" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q0</text>
+<rect x="1366" y="524" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,530 1366,530" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,530 1402,530" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="530" r="8" fill="#ef4444" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="528" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Signal B — RED</text>
+<text x="1426" y="540" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,560 1360,560" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="555" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">1</text>
+<text x="1322" y="564" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q1</text>
+<rect x="1366" y="554" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,560 1366,560" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,560 1402,560" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="560" r="8" fill="#f59e0b" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="558" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Signal B — AMBER</text>
+<text x="1426" y="570" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,590 1360,590" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="585" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">2</text>
+<text x="1322" y="594" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q2</text>
+<rect x="1366" y="584" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,590 1366,590" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,590 1402,590" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="590" r="8" fill="#22c55e" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="588" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Signal B — GREEN</text>
+<text x="1426" y="600" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,620 1360,620" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="615" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">3</text>
+<text x="1322" y="624" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q3</text>
+<rect x="1366" y="614" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,620 1366,620" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,620 1402,620" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="620" r="8" fill="#fbbf24" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="618" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Warning 300 m — side B</text>
+<text x="1426" y="630" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,650 1360,650" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="645" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">4</text>
+<text x="1322" y="654" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q4</text>
+<rect x="1366" y="644" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,650 1366,650" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,650 1402,650" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="650" r="8" fill="#fbbf24" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="648" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Warning 200 m — side B</text>
+<text x="1426" y="660" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,680 1360,680" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="675" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">5</text>
+<text x="1322" y="684" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q5</text>
+<rect x="1366" y="674" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,680 1366,680" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,680 1402,680" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="680" r="8" fill="#fbbf24" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="678" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Warning 100 m — side B</text>
+<text x="1426" y="690" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,710 1360,710" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="705" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">6</text>
+<text x="1322" y="714" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q6</text>
+<rect x="1366" y="704" width="26" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<polyline points="1360,710 1366,710" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1392,710 1402,710" fill="none" stroke="#374151" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1411" cy="710" r="8" fill="#fbbf24" stroke="#374151" stroke-width="1.5"/>
+<text x="1426" y="708" font-size="10.5" text-anchor="start" font-weight="bold" fill="#111827">Camel crossing sign B</text>
+<text x="1426" y="720" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">220 Ω → LED → GND</text>
+<polyline points="1330,740 1360,740" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="735" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">7</text>
+<text x="1322" y="744" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q7</text>
+<text x="1368" y="744" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">spare (not connected)</text>
+<polyline points="1330,782 1360,782" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1345.0" y="777" font-size="10" text-anchor="middle" font-weight="bold" fill="#2563eb" font-family="Consolas, monospace">9</text>
+<text x="1322" y="786" font-size="11" text-anchor="end" font-weight="bold" fill="#ffffff" font-family="Consolas, monospace">Q7'</text>
+<text x="1368" y="786" font-size="10" text-anchor="start" font-weight="normal" fill="#6b7280">not connected</text>
+<polyline points="1170,140 940,140 940,300 880,300" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1170,172 965,172 965,480 880,480" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="880,516 990,516 990,204" fill="none" stroke="#c2410c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M990,204 L1106,204 A6,6 0 0 1 1118,204 L1170,204" fill="none" stroke="#c2410c" stroke-width="2.5" stroke-linecap="round"/>
+<circle cx="1112" cy="172" r="4" fill="#7c3aed"/>
+<polyline points="1112,172 1112,562 1170,562" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="1098" cy="204" r="4" fill="#c2410c"/>
+<polyline points="1098,204 1098,594 1170,594" fill="none" stroke="#c2410c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1360,392 1374,392 1374,454.0 1140,454.0 1140,530 1170,530" fill="none" stroke="#0e7490" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1380" y="458.0" font-size="10" text-anchor="start" font-weight="bold" fill="#0e7490">chain: #1 Q7′ (pin 9) → #2 DS (pin 14)</text>
+<rect x="992" y="606" width="100" height="118" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+<text x="1000" y="624" font-size="11.5" text-anchor="start" font-weight="bold" fill="#111827">PIR HC-SR501</text>
+<text x="1000" y="638" font-size="9.5" text-anchor="start" font-weight="normal" fill="#4b5563">camel gate, middle</text>
+<text x="1000" y="650" font-size="9.5" text-anchor="start" font-weight="normal" fill="#4b5563">between IR A / B</text>
+<text x="1000" y="664" font-size="11" text-anchor="start" font-weight="bold" fill="#374151" font-family="Consolas, monospace">OUT</text>
+<text x="1014" y="714" font-size="11" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VCC</text>
+<text x="1064" y="714" font-size="11" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">GND</text>
+<text x="1000" y="692" font-size="9" text-anchor="start" font-weight="normal" fill="#6b7280">time pot: min</text>
+<path d="M880,660 L946,660 A6,6 0 0 1 958,660 L962,660 A6,6 0 0 1 974,660 L992,660" fill="none" stroke="#4f46e5" stroke-width="2.5" stroke-linecap="round"/>
+<polyline points="1014,724 1014,736" fill="none" stroke="#dc2626" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1000" y="736" width="28" height="16" rx="3" fill="#dc2626"/>
+<text x="1014" y="748" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">5V</text>
+<polyline points="1064,724 1064,736" fill="none" stroke="#111827" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1050" y="736" width="28" height="16" rx="3" fill="#111827"/>
+<text x="1064" y="748" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<rect x="560" y="910" width="380" height="150" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="575" y="932" font-size="14" text-anchor="start" font-weight="bold" fill="#111827">Power</text>
+<text x="575" y="954" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• Supply: solar panel → TP4056 → 18650 → MT3608 (5.1 V) → VIN</text>
+<text x="575" y="971" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• A 5 V ≥ 2 A USB adapter / power bank works too (bench, backup)</text>
+<text x="575" y="988" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• 5 V rail (VIN): buzzer, 2× HC-SR04, PIR</text>
+<text x="575" y="1005" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• 3V3 rail (ESP32 pin): 2× IR, 2× 74HC595, 2× INA219</text>
+<text x="575" y="1022" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• All GND connected together (ESP32, sensors, LEDs, power)</text>
+<rect x="980" y="838" width="560" height="340" rx="8" fill="#f9fafb" stroke="#9ca3af" stroke-width="1.5"/>
+<text x="995" y="858" font-size="14" text-anchor="start" font-weight="bold" fill="#111827">Notes</text>
+<text x="995" y="880" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">1. Camel gate: IR A (side-A edge) · PIR (middle) · IR B (side-B edge).</text>
+<text x="995" y="899" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">   Camel = IR trigger + PIR motion within 3 s; first IR = its side.</text>
+<text x="995" y="918" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">2. IR: FC-51, VCC 3.3 V, OUT active LOW. PIR: VCC 5 V, OUT 3.3 V.</text>
+<text x="995" y="937" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">3. Cars: 2× HC-SR04 at the 400 m points, ≤ 15 cm across the lane = car.</text>
+<text x="995" y="956" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">   ECHO is a 5 V signal: always through the 1 kΩ / 2 kΩ divider.</text>
+<text x="995" y="975" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">4. Side A: signs 300/200/100 m, signal A; car at A → A signs fast. Same B.</text>
+<text x="995" y="994" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">5. D0, D2, D5, D12, D15 are strapping pins: no sensor on them.</text>
+<text x="995" y="1013" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">6. Free: D21 / D22, D34, D35, VP, VN.</text>
+<text x="995" y="1032" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">7. Self-test at power-on: chip #1 (side A) Q0 → Q6, then chip #2 (B).</text>
+<text x="995" y="1051" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">8. ≈ 6 mA per LED output; bigger signs: NPN or ULN2803 driver.</text>
+<text x="995" y="1070" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">9. 74HC595 (both): VCC 16 &amp; MR 10 → 3V3 · OE 13 &amp; GND 8 → GND ·</text>
+<text x="995" y="1089" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">    100 nF across pins 16–8. Q0 = pin 15, Q1…Q7 = pins 1…7.</text>
+<text x="995" y="1108" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">10. INA219 #1 (0x40) on the solar input, #2 (0x41, A0 bridged) on the</text>
+<text x="995" y="1127" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">    battery: positive current = charging. Not fitted = USB still works.</text>
+<rect x="30" y="956" width="500" height="200" rx="8" fill="#f9fafb" stroke="#9ca3af" stroke-width="1.5"/>
+<text x="45" y="978" font-size="14" text-anchor="start" font-weight="bold" fill="#111827">Wire colours</text>
+<polyline points="45,1002 71,1002" fill="none" stroke="#dc2626" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="79" y="1006" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">5 V</text>
+<polyline points="285,1002 311,1002" fill="none" stroke="#ea580c" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="319" y="1006" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">3.3 V</text>
+<polyline points="45,1020 71,1020" fill="none" stroke="#111827" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="79" y="1024" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">GND</text>
+<polyline points="285,1020 311,1020" fill="none" stroke="#a21caf" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="319" y="1024" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">I2C SDA ← D17</text>
+<polyline points="45,1038 71,1038" fill="none" stroke="#ca8a04" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="79" y="1042" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">I2C SCL ← D16</text>
+<polyline points="285,1038 311,1038" fill="none" stroke="#65a30d" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="319" y="1042" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">Vehicle HC-SR04 A TRIG ← D32</text>
+<polyline points="45,1056 71,1056" fill="none" stroke="#4d7c0f" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="79" y="1060" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">Vehicle HC-SR04 A ECHO → D33</text>
+<polyline points="285,1056 311,1056" fill="none" stroke="#16a34a" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="319" y="1060" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">Vehicle HC-SR04 B TRIG ← D26</text>
+<polyline points="45,1074 71,1074" fill="none" stroke="#15803d" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="79" y="1078" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">Vehicle HC-SR04 B ECHO → D27</text>
+<polyline points="285,1074 311,1074" fill="none" stroke="#db2777" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="319" y="1078" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">Camel IR A → D13</text>
+<polyline points="45,1092 71,1092" fill="none" stroke="#be185d" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="79" y="1096" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">Camel IR B → D14</text>
+<polyline points="285,1092 311,1092" fill="none" stroke="#4f46e5" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="319" y="1096" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">PIR OUT → D4</text>
+<polyline points="45,1110 71,1110" fill="none" stroke="#0f766e" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="79" y="1114" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">Buzzer ← D25</text>
+<polyline points="285,1110 311,1110" fill="none" stroke="#0284c7" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="319" y="1114" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">595 DS (14) ← D23</text>
+<polyline points="45,1128 71,1128" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="79" y="1132" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">595 ST_CP (12) ← D19</text>
+<polyline points="285,1128 311,1128" fill="none" stroke="#c2410c" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="319" y="1132" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">595 SH_CP (11) ← D18</text>
+<polyline points="45,1146 71,1146" fill="none" stroke="#0e7490" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="79" y="1150" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">595 #1 Q7′ (9) → #2 DS (14)</text>
+<rect x="30" y="1196" width="1580" height="316" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+<text x="48" y="1220" font-size="15" text-anchor="start" font-weight="bold" fill="#111827">Solar panel + battery — power supply and measurement (2× INA219 on the I2C bus)</text>
+<rect x="50" y="1296" width="120" height="118" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="60" y="1316" font-size="13" text-anchor="start" font-weight="bold" fill="#111827">Solar panel</text>
+<text x="60" y="1331" font-size="10" text-anchor="start" font-weight="normal" fill="#4b5563">6 V · 2 W</text>
+<rect x="60" y="1342" width="28" height="24" rx="2" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="1"/>
+<rect x="60" y="1370" width="28" height="24" rx="2" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="1"/>
+<rect x="92" y="1342" width="28" height="24" rx="2" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="1"/>
+<rect x="92" y="1370" width="28" height="24" rx="2" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="1"/>
+<rect x="124" y="1342" width="28" height="24" rx="2" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="1"/>
+<rect x="124" y="1370" width="28" height="24" rx="2" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="1"/>
+<text x="162" y="1370" font-size="13" text-anchor="end" font-weight="bold" fill="#d97706">+</text>
+<text x="162" y="1394" font-size="13" text-anchor="end" font-weight="bold" fill="#111827">−</text>
+<polyline points="170,1376 250,1376" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="170,1400 186,1400" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="186" y="1392" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="200.25" y="1404" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<rect x="250" y="1296" width="200" height="118" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="278" y="1313" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VCC</text>
+<circle cx="278" cy="1296" r="3.5" fill="#9ca3af"/>
+<text x="310" y="1313" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">GND</text>
+<circle cx="310" cy="1296" r="3.5" fill="#9ca3af"/>
+<text x="360" y="1313" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">SDA</text>
+<circle cx="360" cy="1296" r="3.5" fill="#9ca3af"/>
+<text x="392" y="1313" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">SCL</text>
+<circle cx="392" cy="1296" r="3.5" fill="#9ca3af"/>
+<text x="260" y="1338" font-size="13" text-anchor="start" font-weight="bold" fill="#111827">INA219 #1 — SOLAR</text>
+<text x="260" y="1353" font-size="10" text-anchor="start" font-weight="normal" fill="#4b5563">0x40 · A0, A1 open</text>
+<rect x="320" y="1370" width="60" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<text x="350" y="1398" font-size="9.5" text-anchor="middle" font-weight="normal" fill="#6b7280">0.1 Ω shunt</text>
+<polyline points="250,1376 320,1376" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="380,1376 450,1376" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="258" y="1398" font-size="10" text-anchor="start" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VIN+</text>
+<text x="442" y="1398" font-size="10" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VIN−</text>
+<polyline points="278,1296 278,1284" fill="none" stroke="#ea580c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="264" y="1268" width="28" height="16" rx="3" fill="#ea580c"/>
+<text x="278" y="1280" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">3V3</text>
+<polyline points="310,1296 310,1284" fill="none" stroke="#111827" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="296" y="1268" width="28" height="16" rx="3" fill="#111827"/>
+<text x="310" y="1280" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="450,1376 520,1376" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="520" y="1296" width="180" height="118" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="530" y="1316" font-size="13" text-anchor="start" font-weight="bold" fill="#111827">TP4056 charger</text>
+<text x="530" y="1331" font-size="10" text-anchor="start" font-weight="normal" fill="#4b5563">with battery protection</text>
+<text x="528" y="1380" font-size="10" text-anchor="start" font-weight="bold" fill="#374151" font-family="Consolas, monospace">IN+</text>
+<text x="692" y="1380" font-size="10" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">B+</text>
+<text x="528" y="1404" font-size="10" text-anchor="start" font-weight="bold" fill="#374151" font-family="Consolas, monospace">IN−</text>
+<text x="692" y="1404" font-size="10" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">B−</text>
+<polyline points="520,1400 506,1400" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="478" y="1392" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="492.25" y="1404" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="700,1400 714,1400" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="714" y="1392" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="728.25" y="1404" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="700,1376 790,1376" fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="745" cy="1376" r="4" fill="#1d4ed8"/>
+<rect x="790" y="1296" width="200" height="118" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="818" y="1313" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VCC</text>
+<circle cx="818" cy="1296" r="3.5" fill="#9ca3af"/>
+<text x="850" y="1313" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">GND</text>
+<circle cx="850" cy="1296" r="3.5" fill="#9ca3af"/>
+<text x="900" y="1313" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">SDA</text>
+<circle cx="900" cy="1296" r="3.5" fill="#9ca3af"/>
+<text x="932" y="1313" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#374151" font-family="Consolas, monospace">SCL</text>
+<circle cx="932" cy="1296" r="3.5" fill="#9ca3af"/>
+<text x="800" y="1338" font-size="13" text-anchor="start" font-weight="bold" fill="#111827">INA219 #2 — BATTERY</text>
+<text x="800" y="1353" font-size="10" text-anchor="start" font-weight="normal" fill="#4b5563">0x41 · A0 bridged to VS+</text>
+<rect x="860" y="1370" width="60" height="12" rx="2" fill="#fef3c7" stroke="#374151" stroke-width="1.5"/>
+<text x="890" y="1398" font-size="9.5" text-anchor="middle" font-weight="normal" fill="#6b7280">0.1 Ω shunt</text>
+<polyline points="790,1376 860,1376" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="920,1376 990,1376" fill="none" stroke="#374151" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="798" y="1398" font-size="10" text-anchor="start" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VIN+</text>
+<text x="982" y="1398" font-size="10" text-anchor="end" font-weight="bold" fill="#374151" font-family="Consolas, monospace">VIN−</text>
+<polyline points="818,1296 818,1284" fill="none" stroke="#ea580c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="804" y="1268" width="28" height="16" rx="3" fill="#ea580c"/>
+<text x="818" y="1280" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">3V3</text>
+<polyline points="850,1296 850,1284" fill="none" stroke="#111827" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="836" y="1268" width="28" height="16" rx="3" fill="#111827"/>
+<text x="850" y="1280" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="990,1376 1050,1376" fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1020" y="1366" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#1d4ed8">+ = charging</text>
+<rect x="1050" y="1296" width="130" height="118" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="1060" y="1316" font-size="13" text-anchor="start" font-weight="bold" fill="#111827">18650 Li-ion</text>
+<text x="1060" y="1331" font-size="10" text-anchor="start" font-weight="normal" fill="#4b5563">3.7 V · ≈ 2600 mAh</text>
+<rect x="1068" y="1342" width="64" height="30" rx="4" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/><rect x="1132" y="1351" width="6" height="12" fill="#1d4ed8"/>
+<text x="1100" y="1362" font-size="10" text-anchor="middle" font-weight="bold" fill="#1d4ed8">cell</text>
+<text x="1058" y="1370" font-size="13" text-anchor="start" font-weight="bold" fill="#1d4ed8">+</text>
+<polyline points="1050,1400 1036,1400" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1008" y="1392" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="1022.25" y="1404" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<text x="1058" y="1394" font-size="13" text-anchor="start" font-weight="bold" fill="#111827">−</text>
+<rect x="790" y="1436" width="200" height="58" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+<text x="800" y="1456" font-size="13" text-anchor="start" font-weight="bold" fill="#111827">MT3608 boost → 5.1 V</text>
+<text x="800" y="1471" font-size="10" text-anchor="start" font-weight="normal" fill="#4b5563">IN+ from the battery node</text>
+<polyline points="745,1376 745,1465 790,1465" fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="990,1465 1030,1465" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1030" y="1457" width="22.0" height="16" rx="3" fill="#dc2626"/>
+<text x="1041.0" y="1469" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">5V</text>
+<text x="1066" y="1469" font-size="10.5" text-anchor="start" font-weight="bold" fill="#b91c1c">→ VIN (5 V rail)</text>
+<polyline points="790,1484 776,1484" fill="none" stroke="#111827" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="748" y="1476" width="28.5" height="16" rx="3" fill="#111827"/>
+<text x="762.25" y="1488" font-size="10" text-anchor="middle" font-weight="bold" fill="#ffffff">GND</text>
+<polyline points="880,588 952,588 952,1238 360,1238" fill="none" stroke="#a21caf" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M900,1238 L900,1248 A6,6 0 0 1 900,1260 L900,1296" fill="none" stroke="#a21caf" stroke-width="2.5" stroke-linecap="round"/>
+<circle cx="900" cy="1238" r="4" fill="#a21caf"/>
+<polyline points="360,1238 360,1296" fill="none" stroke="#a21caf" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="880,624 968,624 968,1254 392,1254" fill="none" stroke="#ca8a04" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="932,1254 932,1296" fill="none" stroke="#ca8a04" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="932" cy="1254" r="4" fill="#ca8a04"/>
+<polyline points="392,1254 392,1296" fill="none" stroke="#ca8a04" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="560" y="1232" font-size="10" text-anchor="start" font-weight="bold" fill="#a21caf" font-family="Consolas, monospace">SDA ← D17</text>
+<text x="560" y="1269" font-size="10" text-anchor="start" font-weight="bold" fill="#ca8a04" font-family="Consolas, monospace">SCL ← D16</text>
+<text x="1230" y="1256" font-size="13" text-anchor="start" font-weight="bold" fill="#111827">What the ESP32 reports</text>
+<text x="1230" y="1280" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• INA219 #1: panel V, mA, W; “sun” above 4.5 V</text>
+<text x="1230" y="1300" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• INA219 #2: battery V (≈ %), mA; + charging, − discharging</text>
+<text x="1230" y="1320" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• States: charging · full (≥ 4.10 V) · on battery · idle</text>
+<text x="1230" y="1340" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• Battery low below 3.45 V (clears above 3.60 V)</text>
+<text x="1230" y="1360" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• Not fitted at power-on: skipped (USB still works)</text>
+<text x="1230" y="1380" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• Stops answering later: fault INA-S / INA-B</text>
+<text x="1230" y="1400" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">• Wrong sign? swap VIN+ / VIN− or INA_*_INVERT in config.h</text>
+<polyline points="1230,1448 1256,1448" fill="none" stroke="#d97706" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1264" y="1452" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">solar side (panel → charger)</text>
+<polyline points="1230,1468 1256,1468" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="1264" y="1472" font-size="11" text-anchor="start" font-weight="normal" fill="#374151">battery side (charger / boost node ↔ cell)</text>
+</svg>

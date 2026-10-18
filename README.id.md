@@ -1,0 +1,188 @@
+# 🐪 Camel Guard — Sistem Keselamatan Penyeberangan Unta di Highway (ESP32 + Dashboard Lokal)
+
+> 🇬🇧 English version: [README.md](README.md)
+
+> ⚠️ Ini adalah **simulator miniatur** untuk proyek capstone sekolah (maket highway di atas meja dengan mainan
+> unta dan mobil). Bukan perangkat untuk jalan sungguhan. Di highway tidak ada pejalan kaki, jadi sistem hanya
+> menangani unta.
+
+## 1. Arsitektur
+
+```
+ ┌─────────────────────────── ESP32 ────────────────────────────┐   WiFi (HTTP POST tiap 1 dtk)  ┌──── PC / Laptop ─────────┐
+ │ Gerbang unta: IR A (tepi sisi A) · PIR (tengah) · IR B (sisi B)│ ── telemetri JSON ─────────►  │ server.py (Python)       │
+ │        ─► IR terpicu + gerakan PIR = unta, sisi = IR pertama  │                                │  • SQLite: log, hazard,  │
+ │ 2× HC-SR04 di titik 400 m sisi A / B (melintang lajur)        │ ◄── perintah: clear/setting ── │    kendaraan             │
+ │        ─► mobil lewat? (rambu sisinya)    ─► state machine ─► │     alert / test / reboot      │  • SSE realtime          │
+ │  Output: 2× 74HC595 → 2 lampu lalu lintas, rambu unta,        │                                │ Browser: dashboard       │
+ │          rambu peringatan 300 / 200 / 100 m (dua arah),       │                                └──────────────────────────┘
+ │          buzzer di penyeberangan                              │
+ └──────────────────────────────────────────────────────────────┘
+```
+
+**Susunan sensor firmware 2.3.x:** **sensor unta = gerbang unta dengan 2× modul IR obstacle (FC-51, digital) — satu di
+tepi sisi A dan satu di tepi sisi B penyeberangan — dan 1× PIR (HC-SR501 / AM312) di tengah, di antara keduanya.**
+**Sensor kendaraan = 2× HC-SR04 ultrasonik, satu per arah datang di titik "400 m" (sebelum rambu 300 m), di samping
+lajur dan memancar melintang lajur** — sensor hanya mendeteksi ada mobil yang lewat di titik itu, bukan mengukur jarak
+mobil ke penyeberangan. Tanpa LDR, relay maupun beacon.
+
+**Keputusan peringatan dibuat di ESP32 (edge)**, bukan di PC. Tanpa WiFi/laptop, lampu, rambu dan buzzer tetap
+bekerja. Dashboard untuk monitoring, log, dan pengaturan.
+
+| Path | Isi |
+|---|---|
+| `firmware/camel_guard_esp32/` | Sketch ESP32 (v2.3.1). `sensors_config.h` = pin sensor + default; `config.h` = WiFi, pin lain dan **default boot pertama** (nama sensor lama di sana tidak dipakai lagi); pengaturan dan daftar WiFi tersimpan di flash ESP32 (NVS) dan diubah dari dashboard |
+| `dashboard/server.py` | Server dashboard (hanya library standar Python) |
+| `dashboard/static/index.html` | Halaman dashboard (Overview / Dashboard / Log & History / Settings / Team) |
+| `dashboard/simulator.py` | ESP32 palsu (logika sama dengan firmware) dengan skenario, untuk kerja tanpa hardware |
+| `docs/wiring_diagram.svg` | **Diagram wiring** (dibuat oleh `tools/make_wiring.py`) · juga `block_diagram.svg`, `state_machine.svg` (`tools/make_diagrams.py`) |
+| `docs/UJI_HARDWARE.id.md` | Checklist pengujian hardware |
+| `proposal/` | Draf awal, **proposal lengkap** (`Camel_Crossing_Highway_Safety_Proposal_v3.3.docx`), gambar dan generatornya |
+| `START_DASHBOARD.bat` | **Sekali klik**: menulis WiFi laptop ke `config.h` dan membuka dashboard |
+| `START_SIMULATOR.bat` | **Simulator sekali klik**: menyalakan dashboard bila perlu dan menjalankan skenario |
+| `FIRMWARE_TOOLS.bat` | Compile, compile + upload, cek ESP32 lewat USB, ganti port |
+| `camel_guard.ini` | Port proyek (dashboard TCP **5100**, discovery UDP **45811**) dan COM USB per PC |
+
+Port berbeda dari proyek alarm kebakaran (5000 / 45801), jadi kedua dashboard bisa jalan bersamaan di satu laptop.
+
+## 2. Cara kerja
+
+**Highway:** dua jalur (carriageway) — A (lalu lintas dari sisi A, kiri → kanan) dan B (dari sisi B) — dengan satu
+penyeberangan unta. Di setiap arah datang: rambu peringatan **300 m, 200 m, 100 m** sebelum penyeberangan, lalu rambu
+penyeberangan unta dan lampu lalu lintas. Di maket urutan rambunya benar, tapi jaraknya tidak sesuai skala.
+
+**Gerbang unta (2× IR + PIR):** di penyeberangan, IR A mengawasi tepi sisi A, IR B tepi sisi B, dan PIR berada di median
+di antara keduanya. ESP32 membaca ketiganya tiap 50 ms:
+1. IR yang terhalang **3 pembacaan berturut-turut** (*IR confirmation*, 3 × 50 ms) **terpicu**.
+2. Bila PIR melihat gerakan dalam **3 dtk** (*PIR confirmation window*, 1–10 dtk) sebelum atau sesudah pemicu itu, itu
+   **unta terkonfirmasi** yang datang dari sisi yang IR-nya terpicu lebih dulu (tampil sebagai *From Side A / B*). Dihitung sekali.
+3. IR terpicu **tanpa gerakan PIR** dalam jendela itu **bukan unta** (tangan, mobil mainan, pantulan): diabaikan, dihitung
+   sebagai *IR without PIR* dan dicatat di log ("Camel sensor: IR without PIR — ignored").
+4. Unta ditahan selama IR atau PIR masih melihatnya, lalu **5 dtk** lagi (*hold time*). Unta yang keluar lewat IR sisi
+   lain tetap unta yang sama. Bila PIR tidak dipasang (Settings → Sensors → *PIR: Not Fitted*), satu IR saja sudah mengonfirmasi.
+
+**Sensor kendaraan (HC-SR04) di titik 400 m:** satu per arah datang, sebelum rambu peringatan 300 m (± 400 m sebelum
+penyeberangan di dunia nyata, diskalakan di maket), berdiri di samping lajur dan memancar **melintang** lajur. Ini detektor
+mobil lewat: lajur kosong terbaca *Lane Empty* (tidak ada benda dalam jangkauan), mobil yang lewat di depannya terbaca
+beberapa cm. Masing-masing di-ping tiap 50 ms (A dan B bergantian, selisih 25 ms), pulsa echo diukur dengan interrupt dan
+tiap pembacaan melewati filter median-3. Pembacaan **≤ 15 cm** (*Detection Limit (Lane Width)*, 3–150 cm — atur sedikit di
+bawah lebar lajur) = mobil. Setiap mobil dihitung untuk sisinya (debounce 0,3 dtk) dan dianggap "mendekat" selama **8 dtk**
+(*approach time* — waktu tempuh dari titik 400 m ke penyeberangan). Sama sekali tidak ada pulsa echo = fault sensor.
+
+**Apa yang dipicu oleh deteksi mobil (lampu di samping jalan):** rambu di samping jalan (300 / 200 / 100 m + rambu
+penyeberangan unta) hanya menyala selama ada unta di gerbang (atau saat alert manual) — kedua arah berkedip 1 Hz. Bila mobil
+melewati sensor 400 m suatu sisi saat ada unta, **rambu di sisi mobil itu berkedip cepat (4 Hz) dan buzzer berbunyi** selama
+approach time; sisi lainnya tetap berkedip biasa. Mobil tanpa unta di gerbang hanya dihitung (lampu tidak menyala).
+
+**Daya (panel surya + baterai):** dua modul **INA219** di bus I2C (D17 = SDA, D16 = SCL) mengukur panel surya
+(INA219 #1, alamat 0x40: tegangan dan arus) dan baterai 18650 (INA219 #2, alamat 0x41: tegangan dan arus, + = mengisi).
+ESP32 menghitung muatan baterai (≈ %), status pengisian — `charging`, `full` (≥ 4,10 V dan tanpa arus), `discharging`
+(memakai baterai) atau `idle` — "sun" (panel ≥ 4,5 V) dan peringatan baterai lemah (di bawah 3,45 V, hilang di atas 3,60 V).
+Modul yang tidak dipasang dilewati, jadi perangkat yang dicatu USB tetap bekerja dan hanya tidak menampilkan tile daya.
+
+**Fault** (Settings → Device, catatan merah di halaman Dashboard): `US-A` / `US-B` = HC-SR04 kendaraan sama sekali tidak
+memberi pulsa echo selama 1 dtk (sensor, 5 V atau pembagi ECHO), `CAR-A` / `CAR-B` = sensor kendaraan melihat "kendaraan"
+selama 2 menit (ada benda di depannya, atau jarak kendaraan diatur terlalu besar), `OBJ-A` / `OBJ-B` = IR unta terhalang
+selama 2 menit, `PIR` = PIR melaporkan gerakan selama 2 menit, `BAT-LOW` = baterai di bawah 3,45 V, `INA-S` / `INA-B` =
+INA219 yang tadinya menjawab berhenti menjawab.
+
+| State | Kapan | Lampu A/B | Rambu | Buzzer |
+|---|---|---|---|---|
+| WARMUP | 3 dtk pertama setelah dinyalakan | kuning tetap | mati | mati |
+| CLEAR | tidak ada unta terkonfirmasi | hijau | mati | mati |
+| WARNING | unta terkonfirmasi di gerbang (IR + PIR), atau alert manual | **urutan ke merah** | **rambu 300/200/100 m berkedip** (bergantian kiri-kanan) + rambu unta | mati |
+| DANGER | WARNING **dan** mobil melewati sensor 400 m dalam approach time | **urutan ke merah** | rambu di sisi mobil itu berkedip cepat, sisi lain berkedip biasa | bip cepat |
+
+**Lampu lalu lintas (urutan UAE):** hijau tetap → **hijau berkedip 3 dtk** (± 3 kedipan) → **kuning 3 dtk** → **merah**,
+ditahan selama bahaya masih ada (minimal 2 dtk), lalu langsung kembali hijau. Tidak ada fase yang dilewati — begitu
+hijau berkedip dimulai, urutan selalu berlanjut sampai merah; mobil yang datang di tengah urutan diperingatkan oleh
+rambu berkedip cepat dan buzzer. Durasi: Settings → Output Test → *Flashing Green* / *Amber* (1–10 dtk).
+
+**Rambu peringatan 300 / 200 / 100 m:** enam rambu (tiga per arah), masing-masing dengan dua LED kuning yang menyala
+bergantian (wig-wag, 1 Hz) selama unta menyeberang, 4 Hz di sisi yang mobilnya melewati sensor 400 m (DANGER).
+
+## 3. Wiring (ESP32 DevKit V1)
+
+![Diagram wiring](docs/wiring_diagram.svg)
+
+| Komponen | Pin ESP32 | Catatan |
+|---|---|---|
+| IR unta A OUT (gerbang, tepi sisi A) | GPIO 13 | FC-51, VCC 3,3 V, aktif LOW |
+| IR unta B OUT (gerbang, tepi sisi B) | GPIO 14 | sama |
+| PIR OUT (gerbang, tengah antara IR A / B) | GPIO 4 | HC-SR501: VCC 5 V, OUT logika 3,3 V (tanpa pembagi); pull-down internal = bila lepas terbaca "tidak ada gerakan" |
+| HC-SR04 kendaraan A TRIG / ECHO (sisi A, titik 400 m) | GPIO 32 / GPIO 33 | VCC 5 V · **ECHO lewat pembagi 1 kΩ / 2 kΩ** (ECHO → 1 kΩ → pin, pin → 2 kΩ → GND) |
+| HC-SR04 kendaraan B TRIG / ECHO (sisi B, titik 400 m) | GPIO 26 / GPIO 27 | pembagi yang sama |
+| INA219 #1 (surya, 0x40) dan #2 (baterai, 0x41) SDA / SCL | GPIO 17 / GPIO 16 | VCC 3,3 V, kedua modul di dua kabel yang sama; pad A0 modul #2 dijumper. Lihat jalur daya di bagian bawah diagram wiring |
+| Buzzer (di penyeberangan) | GPIO 25 | lewat NPN (2N2222 + 1 kΩ), buzzer aktif 5 V |
+| 2× 74HC595 DS / SH_CP / ST_CP | GPIO 23 / 18 / 19 | chip #1 Q7′ (pin 9) → DS chip #2 (pin 14); SH_CP (11) dan ST_CP (12) disambung bersama; VCC (16) & MR (10) → 3V3, OE (13) & GND (8) → GND, 100 nF per chip |
+| 74HC595 #1 = **sisi A**, #2 = **sisi B** (susunan sama) | – | Q0–Q2 lampu M/K/H · Q3–Q5 rambu peringatan 300 / 200 / 100 m · Q6 rambu penyeberangan unta · Q7 cadangan (220 Ω) |
+| LED status | GPIO 2 | onboard: nyala = WiFi terhubung |
+
+Pin dipilih supaya tidak ada sensor di pin strapping (GPIO 0, 2, 5, 12, 15) dan setiap TRIG memakai pin yang bisa output
+(GPIO 34–39 hanya input). Dari firmware 2.2: HC-SR04 tetap di pin dan pembagi ECHO yang sama (dipindah dari gantry unta ke
+titik 400 m, di samping lajur), modul IR tetap di D13 / D14 (dipindah ke gerbang unta), PIR baru di D4.
+
+Saat dinyalakan, LED menyala bergantian Q0 → Q6 chip #1 (sisi A), lalu Q0 → Q6 chip #2 (sisi B) — self-test wiring.
+Bila modul IR bekerja terbalik (HIGH saat terhalang), ubah `CAMEL_IR_ACTIVE_LOW false` di `sensors_config.h`.
+**PIR (HC-SR501):** potensiometer waktu ke minimum (± 3 dtk), jumper trigger di **H** (repeat), dan beri waktu 30–60 dtk
+setelah dinyalakan untuk stabil. Tidak perlu library Arduino tambahan (INA219 dibaca langsung lewat I2C dengan `Wire`).
+
+**Jalur daya** (bagian bawah diagram wiring): panel surya + → **INA219 #1** (VIN+ → VIN−) → charger TP4056 (dengan proteksi baterai)
+→ simpul → **INA219 #2** (VIN+ = simpul, VIN− = + baterai) → baterai 18650; konverter boost MT3608 (diatur 5,1 V) mengambil
+masukan dari simpul yang sama dan memberi daya ke VIN. Semua ground disambung. Bila arus terbaca dengan tanda terbalik, tukar
+VIN+ / VIN− atau ubah `INA_SOLAR_INVERT` / `INA_BAT_INVERT` di `config.h`.
+
+## 4. Mulai
+
+### Tanpa hardware (simulator)
+Klik dua kali **`START_SIMULATOR.bat`** dan pilih skenario:
+
+| # | Skenario | Yang terjadi |
+|---|---|---|
+| 1 | `auto` | tur: kosong → mobil → unta dari A → IR tanpa PIR (diabaikan) → unta dari B + mobil (DANGER) → … |
+| 2 | `clear` | jalan kosong, sesekali mobil |
+| 3 | `camel` | unta menyeberang dari sisi A, lalu satu dari sisi B (IR → PIR → IR sisi lain) |
+| 4 | `danger` | unta menyeberang sementara mobil datang dari dua sisi |
+| 5 | `multi` | tiga penyeberangan unta sekaligus (halaman Overview, ALERT ALL) |
+
+Simulator juga memainkan siklus siang / malam 4 menit untuk panel surya dan baterai yang mengisi / mengosong 30× lebih cepat dari
+waktu nyata (penyeberangan ketiga skenario `multi` tanpa INA219, seperti perangkat yang dicatu USB).
+
+### Dengan ESP32
+1. Sambungkan laptop ke WiFi 2,4 GHz WPA/WPA2-Personal (hotspot HP atau router — bukan WiFi Enterprise sekolah).
+2. Jalankan **`START_DASHBOARD.bat`**: WiFi itu ditulis ke `config.h`, aturan firewall ditawarkan (TCP 5100 + UDP 45811),
+   lalu `http://localhost:5100` terbuka.
+3. Upload firmware: dashboard **Settings → Firmware & Ports → Upload**, atau `FIRMWARE_TOOLS.bat` menu 2, atau
+   Arduino IDE (board **ESP32 Dev Module**, core *esp32 by Espressif*).
+4. Buka **Settings → Sensors → Sensors Now**: atur potensiometer tiap modul IR (terhalang hanya bila ada benda di gerbang),
+   atur PIR, dan atur *Detection Limit (Lane Width)* sedikit di bawah lebar lajur (lajur kosong harus terbaca *Lane Empty*).
+   Atur *Vehicle Approach Time* = waktu mobil mainan dari sensor 400 m sampai penyeberangan (default 8 dtk; perangkat yang
+   di-update dari 2.2 tetap memakai nilai lamanya).
+5. Ikuti [`docs/UJI_HARDWARE.id.md`](docs/UJI_HARDWARE.id.md) untuk pengujian.
+
+Ganti WiFi nanti tanpa upload ulang: **Settings → Network** (maks 5 jaringan), **Configure over USB**
+(Chrome/Edge), atau access point cadangan **CamelGuard-Setup-XXXX** (password `camelguard`, halaman http://192.168.4.1).
+
+## 5. Dashboard
+- **Overview** — satu kartu per penyeberangan unta (yang berbahaya di atas), CLEAR ALL, **ALERT ALL** (peringatan
+  manual di semua penyeberangan), jumlah penyeberangan unta / kendaraan hari ini.
+- **Dashboard** — status utama (dengan sisi asal unta), **tampilan highway live** (lampu dengan hitung mundur, rambu
+  300/200/100 m, rambu unta, gerbang unta dengan IR A / PIR / IR B, unta dan sisi asalnya, sensor mobil HC-SR04 di titik
+  400 m, mobil dari tiap sisi, rambu tiap sisi, buzzer), enam tile, empat grafik 10 menit (unta, PIR, kendaraan, state jalan),
+  **tile baterai dan surya dengan empat grafik tambahan (hanya bila INA219 dipasang)**, *Why the system decided this*, kendaraan terakhir per sisi.
+- **Log & History** — log kejadian (filter, CSV), **riwayat hazard** (durasi, level puncak, kendaraan), **log kendaraan** (CSV).
+- **Settings** — Detection (IR confirmation, PIR window, approach time, hold time) · Sensors (IR A / PIR / IR B saat ini,
+  pemicu IR-saja yang diabaikan, pembacaan HC-SR04, detection limit (lebar lajur), pembacaan INA219, sensor gerbang yang dipasang) · Network ·
+  Device · **Output Test** (buzzer, lampu lalu lintas, semua rambu, **tiap LED satu per satu**; durasi lampu) · Firmware & Ports · Wiring.
+- **Team** — penulis dan pembimbing (diisi dari proposal; bisa diubah di PC dashboard).
+
+Semua pengaturan tersimpan di ESP32 dan dibatasi (clamp) di kedua sisi, jadi nilai yang diketik di browser tidak
+bisa membuat sistem "buta". Lampu dan rambu tidak bisa dimatikan; hanya buzzer yang bisa di-mute. Pengaturan firmware
+2.0 – 2.2 (daftar WiFi, nama, durasi) tetap tersimpan saat 2.3.x di-upload; pengaturan baru mulai dari nilai default.
+
+Data: `dashboard/data/road_log.db` (SQLite).
+
+## 6. Membuat ulang dokumen
+- Diagram wiring: `python tools/make_wiring.py docs/wiring_diagram.svg`
+- Diagram blok + state machine: `python tools/make_diagrams.py`
+- Proposal: `node proposal/make_proposal.js . <nama file>.docx` (sekali saja `npm install docx`)

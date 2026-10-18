@@ -1,0 +1,16 @@
+# graphify input exclusions (gitignore syntax)
+# config.h holds the real WiFi password: never into the graph
+firmware/camel_guard_esp32/config.h
+config.h
+camel_guard.ini
+# backups, data, generated binaries / images, 3D models
+backup_pre_*/
+dashboard/data/
+*.db
+proposal/*.docx
+proposal/images/
+docs/screenshots/
+docs/*.svg
+3d/
+**/__pycache__/
+graphify-out/

@@ -1,0 +1,25 @@
+# config.h holds the real WiFi password and the dashboard address — never commit it
+firmware/camel_guard_esp32/config.h
+config.h
+
+# local backups made before each change (no git history before this repo)
+backup_pre_*/
+
+# dashboard runtime data: SQLite log, team photos
+dashboard/data/
+*.db
+*.sqlite
+*.sqlite3
+
+# generated knowledge graph (rebuild with /graphify .)
+graphify-out/
+
+# Python / Node / editors
+__pycache__/
+*.pyc
+node_modules/
+.env
+.env.*
+
+# Autodesk Inventor automatic old versions
+3d/OldVersions/
