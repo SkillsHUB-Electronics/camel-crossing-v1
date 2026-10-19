@@ -1,0 +1,20 @@
+# Render Blueprint: the Camel Guard dashboard as a cloud web service (see docs/DEPLOY_CLOUD.id.md).
+# dashboard/server.py uses only the Python standard library, so there is nothing to install (no requirements.txt).
+# Render sets PORT itself; RENDER / CG_CLOUD switch the server to cloud mode (login required, no UDP discovery).
+services:
+  - type: web
+    name: camel-guard-dashboard
+    runtime: python
+    plan: free
+    buildCommand: python --version
+    startCommand: python dashboard/server.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: CG_CLOUD
+        value: "1"
+      - key: DASHBOARD_PASSWORD   # login for the dashboard page — typed in on Render, never committed
+        sync: false
+      - key: DEVICE_KEY           # the ESP32 sends it as X-Device-Key — same value as DEVICE_KEY in config.h
+        sync: false

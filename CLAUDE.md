@@ -110,6 +110,11 @@
 - Arduino builder puts auto-prototypes before the first function: `struct CarSensor` / `GateIr` must stay
   defined above `readMac()`.
 - `.bat` files must be CRLF + ASCII.
+- **Cloud mode (2026-10-19, user chose Render):** `render.yaml` + `docs/DEPLOY_CLOUD.id.md`. `RENDER`/`CG_CLOUD=1` → server refuses
+  to start without `DASHBOARD_PASSWORD` (HTTP Basic on every path except `/healthz` and `/api/telemetry`), skips UDP discovery;
+  `DEVICE_KEY` env → telemetry needs header `X-Device-Key`. Env vars only, never in git. Firmware: port 443 → `https://` with
+  `WiFiClientSecure.setInsecure()`, 6 s timeouts; `DEVICE_KEY` (sensors_config.h default "", the user defines it in config.h).
+  Page "Dashboard Address" accepts `host:port` (server splits it, strips `https://`). Local mode (no env vars) unchanged.
 
 ## Status (2026-10-18)
 - Firmware 2.3.1 compiled clean (86 % flash, 17 % RAM). Simulator check of 2.3.1: one-sided DANGER (car only at B → B signs

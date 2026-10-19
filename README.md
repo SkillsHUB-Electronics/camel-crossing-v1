@@ -162,6 +162,11 @@ real time (the third crossing of `multi` has no INA219, like a USB-powered devic
 Changing WiFi later needs no re-upload: **Settings → Network** (up to 5 networks), **Configure over USB**
 (Chrome/Edge), or the fallback access point **CamelGuard-Setup-XXXX** (password `camelguard`, page http://192.168.4.1).
 
+### Dashboard in the cloud (optional, Render)
+The same `server.py` can run as a web service on Render (`render.yaml`): open the dashboard from anywhere, the ESP32 posts
+over HTTPS. Cloud mode needs `DASHBOARD_PASSWORD` (login) and `DEVICE_KEY` (the ESP32 sends it as `X-Device-Key`), both set on
+Render only. Step by step (Indonesian): [`docs/DEPLOY_CLOUD.id.md`](docs/DEPLOY_CLOUD.id.md).
+
 ## 5. The dashboard
 - **Overview** — one card per camel crossing (hazards first), CLEAR ALL, **ALERT ALL** (manual warning at every
   crossing), today's camel crossings / vehicles.

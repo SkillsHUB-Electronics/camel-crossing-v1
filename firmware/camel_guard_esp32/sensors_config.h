@@ -69,6 +69,13 @@
 #ifndef CAR_US_SAMPLES
 #define CAR_US_SAMPLES   3         // median of the last 3 pings (one wrong echo is removed)
 #endif
+// ---- cloud dashboard (docs/DEPLOY_CLOUD.id.md). Leave empty for the PC dashboard on the LAN. For a cloud dashboard,
+//      define DEVICE_KEY in config.h (it is not committed to git), with the same value as DEVICE_KEY on Render:
+//      #define DEVICE_KEY "your-random-key"
+#ifndef DEVICE_KEY
+#define DEVICE_KEY       ""
+#endif
+
 #ifndef GATE_STUCK_MS
 #define GATE_STUCK_MS    120000UL  // camel IR blocked / PIR high / vehicle sensor "car" this long = fault (OBJ / PIR / CAR)
 #endif

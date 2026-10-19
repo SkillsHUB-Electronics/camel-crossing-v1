@@ -163,6 +163,11 @@ waktu nyata (penyeberangan ketiga skenario `multi` tanpa INA219, seperti perangk
 Ganti WiFi nanti tanpa upload ulang: **Settings → Network** (maks 5 jaringan), **Configure over USB**
 (Chrome/Edge), atau access point cadangan **CamelGuard-Setup-XXXX** (password `camelguard`, halaman http://192.168.4.1).
 
+### Dashboard di cloud (opsional, Render)
+`server.py` yang sama bisa berjalan sebagai web service di Render (`render.yaml`): dashboard bisa dibuka dari mana saja, ESP32
+mengirim lewat HTTPS. Mode cloud memerlukan `DASHBOARD_PASSWORD` (login) dan `DEVICE_KEY` (dikirim ESP32 sebagai `X-Device-Key`),
+keduanya hanya diisi di Render. Langkah lengkap: [`docs/DEPLOY_CLOUD.id.md`](docs/DEPLOY_CLOUD.id.md).
+
 ## 5. Dashboard
 - **Overview** — satu kartu per penyeberangan unta (yang berbahaya di atas), CLEAR ALL, **ALERT ALL** (peringatan
   manual di semua penyeberangan), jumlah penyeberangan unta / kendaraan hari ini.

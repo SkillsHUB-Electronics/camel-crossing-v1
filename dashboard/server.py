@@ -40,7 +40,9 @@ UDP discovery (port from camel_guard.ini, default 45811):
   The ESP32 broadcasts "CAMELGUARD_DISCOVER" when it cannot reach the dashboard; we answer
   "CAMELGUARD_HERE:<ip>:<port>" so the device finds this laptop again after a DHCP change.
 """
+import base64
 import csv
+import hmac
 import io
 import json
 import os
@@ -66,6 +68,12 @@ PORT = int(os.environ.get("PORT") or _saved["dashboard"])
 DISCOVERY_PORT = int(os.environ.get("DISCOVERY_PORT") or _saved["discovery"])
 # START_DASHBOARD.bat sets this and restarts the server when it exits with RESTART_CODE.
 SUPERVISED = os.environ.get("CG_SUPERVISED") == "1"
+# Cloud mode (Render sets RENDER, or CG_CLOUD=1): the dashboard is on the internet. Every page and API then needs
+# DASHBOARD_PASSWORD (HTTP Basic, any user name); the ESP32's POST /api/telemetry needs the X-Device-Key header when
+# DEVICE_KEY is set. Both come from environment variables only. Locally both are normally unset = no login, as before.
+CLOUD = os.environ.get("CG_CLOUD") == "1" or bool(os.environ.get("RENDER"))
+DASHBOARD_PASSWORD = os.environ.get("DASHBOARD_PASSWORD", "")
+DEVICE_KEY = os.environ.get("DEVICE_KEY", "")
 # Identifies this copy of server.py. index.html is read from disk on every request, so after an
 # update the page can be newer than a server that is still running; the page compares the two.
 SERVER_BUILD = str(int(os.path.getmtime(os.path.abspath(__file__))))
@@ -748,10 +756,44 @@ class Handler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             return None
 
+    # ---- login (cloud mode)
+    def authorized(self, path):
+        """False (and a 401 already sent) when this request lacks the password / device key."""
+        if path == "/healthz":
+            return True
+        if path == "/api/telemetry":
+            if not DEVICE_KEY or hmac.compare_digest(self.headers.get("X-Device-Key", ""), DEVICE_KEY):
+                return True
+            self.send_json({"error": "wrong or missing X-Device-Key"}, 401)
+            return False
+        if not DASHBOARD_PASSWORD:
+            return True
+        given = ""
+        auth = self.headers.get("Authorization", "")
+        if auth.startswith("Basic "):
+            try:
+                given = base64.b64decode(auth[6:]).decode("utf-8").partition(":")[2]
+            except (ValueError, UnicodeDecodeError):
+                given = ""
+        if given and hmac.compare_digest(given, DASHBOARD_PASSWORD):
+            return True
+        body = b"Login required"
+        self.send_response(401)
+        self.send_header("WWW-Authenticate", 'Basic realm="Camel Guard", charset="UTF-8"')
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+        return False
+
     # ---- routing
     def do_GET(self):
         u = urlparse(self.path)
         path, q = u.path, parse_qs(u.query)
+        if not self.authorized(path):
+            return
+        if path == "/healthz":
+            return self.send_json({"ok": True})
         if path in ("/", "/index.html"):
             self.serve_file(os.path.join(STATIC_DIR, "index.html"), "text/html; charset=utf-8")
         elif path == "/api/version":
@@ -920,6 +962,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if not self.authorized(path):
+            return
         data = self.read_json()
         if data is None:
             return self.send_json({"error": "invalid json"}, 400)
@@ -1028,7 +1072,13 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json({"error": "at least one network is required"}, 400)
 
         body = {"cmd": "wifi", "nets": nets}
-        host = str(data.get("host", "")).strip()[:40]
+        host = str(data.get("host", "")).strip()
+        # "name:port" sets the port too (a cloud dashboard: "xxx.onrender.com:443" = HTTPS); a pasted URL is trimmed
+        host = re.sub(r"^https?://", "", host).rstrip("/")
+        port_in_host = re.fullmatch(r"(.+):(\d{1,5})", host)
+        if port_in_host:
+            host, data["port"] = port_in_host.group(1), port_in_host.group(2)
+        host = host[:40]
         if host:
             body["host"] = host
             try:
@@ -1326,6 +1376,10 @@ if __name__ == "__main__":
                     time.sleep(0.5)
         return None
 
+    if CLOUD and not DASHBOARD_PASSWORD:
+        print("ERROR: cloud mode (RENDER / CG_CLOUD) needs the DASHBOARD_PASSWORD environment variable -")
+        print("       the dashboard would otherwise be open to everyone on the internet. Set it in the host's settings.")
+        raise SystemExit(1)
     server = bind(10 if SUPERVISED else 1)
     owner = project_settings.port_owner(PORT, "tcp") if server is None else None
     if server is None and owner and owner["name"].lower().startswith("python"):
@@ -1365,6 +1419,14 @@ if __name__ == "__main__":
         raise SystemExit(0)
 
     threading.Thread(target=hub.watchdog, daemon=True).start()
+    if CLOUD:   # no LAN to discover over the internet: the ESP32 gets the address by hand (docs/DEPLOY_CLOUD.id.md)
+        print(f"Camel Guard dashboard (cloud mode) on port {PORT} - login required"
+              + ("" if DEVICE_KEY else " · WARNING: DEVICE_KEY not set, anyone can post telemetry"))
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            pass
+        raise SystemExit(0)
     threading.Thread(target=discovery_responder, daemon=True).start()
     ip = lan_ip()
     print("=" * 62)

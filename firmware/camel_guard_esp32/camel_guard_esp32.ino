@@ -43,6 +43,7 @@
 #include <WiFiUdp.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <Preferences.h>
 #include <Wire.h>
 #include <esp_mac.h>
@@ -886,9 +887,11 @@ static char netUrl[96] = "";
 
 static void serialPoll();   // USB configuration (below); also polled while connecting
 
+// Port 443 = a dashboard in the cloud (Render / Railway): HTTPS. Anything else = the PC dashboard on the LAN: HTTP.
 static void buildUrl() {
-  if (S.host[0]) snprintf(netUrl, sizeof(netUrl), "http://%s:%u/api/telemetry", S.host, S.port);
-  else netUrl[0] = '\0';
+  if (!S.host[0]) netUrl[0] = '\0';
+  else if (S.port == 443) snprintf(netUrl, sizeof(netUrl), "https://%s/api/telemetry", S.host);
+  else snprintf(netUrl, sizeof(netUrl), "http://%s:%u/api/telemetry", S.host, S.port);
 }
 
 // ---- setup access point -------------------------------------------------
@@ -1331,10 +1334,18 @@ static bool postTelemetry() {
   snprintf(body + k, sizeof(body) - k, "]}");
 
   HTTPClient http;
-  http.setConnectTimeout(1500);
-  http.setTimeout(1500);
-  if (!http.begin(netUrl)) return false;
+  // A cloud dashboard (HTTPS) needs a TLS handshake on every POST and sits on the internet: allow longer.
+  // The certificate is not checked (setInsecure) - acceptable for this school model, see docs/DEPLOY_CLOUD.id.md.
+  static WiFiClientSecure tls;
+  bool https = strncmp(netUrl, "https://", 8) == 0;
+  http.setConnectTimeout(https ? 6000 : 1500);
+  http.setTimeout(https ? 6000 : 1500);
+  if (https) {
+    tls.setInsecure();
+    if (!http.begin(tls, netUrl)) return false;
+  } else if (!http.begin(netUrl)) return false;
   http.addHeader("Content-Type", "application/json");
+  if (DEVICE_KEY[0]) http.addHeader("X-Device-Key", DEVICE_KEY);   // must match DEVICE_KEY on the cloud dashboard
   int code = http.POST((uint8_t *)body, strlen(body));
   bool ok = false;
   if (code == 200) {
