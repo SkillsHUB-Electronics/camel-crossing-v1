@@ -20,7 +20,7 @@ Kode tes (T-xx) sama dengan Testing Plan di proposal v3.4.
 - [ ] Jalankan `START_DASHBOARD.bat`, jawab **Y** untuk aturan firewall (TCP 5100 + UDP 45811).
 - [ ] Cek `firmware/camel_guard_esp32/config.h`: `WIFI_SSID` / `WIFI_PASS` sudah terisi otomatis. Pin sensor sekarang ada
       di `sensors_config.h` (nama sensor lama di `config.h` tidak dipakai lagi).
-- [ ] **Satu 74HC595 saja** (chip kedua dicabut): DS → D23, SH_CP → D18, ST_CP → D19. Lampu / rambu sisi A dan B **diparalel** di output yang sama (tiap LED dengan resistor 220 Ω sendiri): Q0 lampu kuning, Q1 rambu 300 m, Q2 rambu 200 m, Q3 rambu 100 m, Q4 rambu unta.
+- [ ] **Satu 74HC595 saja** (chip kedua dicabut): DS → D23, SH_CP → D19, ST_CP → D18. Lampu / rambu sisi A dan B **diparalel** di output yang sama (tiap LED dengan resistor 220 Ω sendiri): Q0 lampu kuning, Q1 rambu 300 m, Q2 rambu 200 m, Q3 rambu 100 m, Q4 rambu unta.
 - [ ] **HC-SR04 = sensor kendaraan** (kabel tetap, hanya posisi berubah): A di arah datang sisi A — TRIG → D32, ECHO
       (lewat pembagi) → D33; B di arah datang sisi B — TRIG → D26, ECHO (lewat pembagi) → D27. VCC → VIN (5 V).
       Pasang di **titik "400 m"** tiap arah datang (sebelum rambu 300 m), **di samping lajur, memancar melintang lajur**

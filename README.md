@@ -106,7 +106,7 @@ The two car sensors still count cars per side and raise DANGER (buzzer), but the
 | Vehicle HC-SR04 B TRIG / ECHO (side B, 400 m point) | GPIO 26 / GPIO 27 | same divider |
 | INA219 #1 (solar, 0x40) and #2 (battery, 0x41) SDA / SCL | GPIO 17 / GPIO 16 | VCC 3.3 V, both modules on the same two wires; #2 has its A0 pad bridged. See the power path at the bottom of the wiring diagram |
 | Buzzer (at the crossing) | GPIO 25 | via NPN (2N2222 + 1 kΩ), 5 V active buzzer |
-| 74HC595 DS / SH_CP / ST_CP | GPIO 23 / 18 / 19 | one chip: VCC (16) & MR (10) → 3V3, OE (13) & GND (8) → GND, 100 nF |
+| 74HC595 DS / SH_CP / ST_CP | GPIO 23 / 19 / 18 | one chip: VCC (16) & MR (10) → 3V3, OE (13) & GND (8) → GND, 100 nF |
 | 74HC595 outputs (side A + B in parallel) | – | Q0 yellow lamp · Q1–Q3 warning signs 300 / 200 / 100 m · Q4 camel-crossing sign · Q5–Q7 spare (each LED with its own 220 Ω; two LEDs per output) |
 | Status LED | GPIO 2 | onboard: on = WiFi connected |
 

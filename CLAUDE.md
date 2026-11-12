@@ -51,6 +51,7 @@
   (A0 bridged) between the battery node and the cell (VIN+ node, VIN− cell +). Positive current = panel → charger / charging.
   Chain: panel → INA#1 → TP4056 (with protection) → node → INA#2 → 18650; MT3608 (5.1 V) from the node → VIN.
   mA = shunt reg × 10 / `INA_SHUNT_MOHM` (0.1 Ω), bus V = reg >> 3 × 4 mV; read every 250 ms, EMA 0.3. `INA_*_INVERT` flips a sign.
+- **74HC595 pins (2026-11-12, user: swap D18/D19): DS = D23, SH_CP (clock) = D19, ST_CP (latch) = D18.** Firmware reads `PIN_SR_DATA/CLOCK/LATCH` from the user's local `config.h` (not in git) — the user must swap the two values there. Docs/diagram/dashboard text updated; proposal .docx not regenerated.
 - Outputs (2.4.0): **one 74HC595** (`ledsWrite(uint8_t)`): Q0 yellow lamp (`Q_LAMP`), Q1–Q3 warning signs 300/200/100 m, Q4 camel sign,
   Q5–Q7 spare (`LED_COUNT` 5, `SIGNS_MASK`). Each LED keeps its own 220 Ω, two LEDs (A + B) per output. Buzzer D25 (NPN). Status LED D2. Free: D21/D22, D34, D35, VP, VN.
 - States: WARMUP (3 s), CLEAR, WARNING (camel or manual alert), DANGER (hazard + vehicle sensor fired within `approachSec`).

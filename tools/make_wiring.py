@@ -289,8 +289,8 @@ text(CX1 + STUB + 8, q7a + 4, "not connected", 10, fill="#6b7280")
 
 # ESP32 → the 74HC595
 route_right(ys1["DS"], 940, "D23", "#0284c7", CX0 - STUB)
-route_right(ys1["ST_CP"], 965, "D19", "#7c3aed", CX0 - STUB)
-PX, PY = PIN["RD18"]
+route_right(ys1["ST_CP"], 965, "D18", "#7c3aed", CX0 - STUB)
+PX, PY = PIN["RD19"]
 wire([(PX, PY), (990, PY), (990, ys1["SH_CP"])], "#c2410c")
 hop_h(990, CX0 - STUB, ys1["SH_CP"], [], "#c2410c")
 text(CX0 - 150, 450, "Each output drives the side-A and the", 10.5, "start", "bold", "#374151")
@@ -336,7 +336,7 @@ legend = [("#dc2626", "5 V"), ("#ea580c", "3.3 V"), ("#111827", "GND"), ("#a21ca
           ("#65a30d", "Vehicle HC-SR04 A TRIG ← D32"), ("#4d7c0f", "Vehicle HC-SR04 A ECHO → D33"),
           ("#16a34a", "Vehicle HC-SR04 B TRIG ← D26"), ("#15803d", "Vehicle HC-SR04 B ECHO → D27"),
           ("#db2777", "Camel IR A → D13"), ("#be185d", "Camel IR B → D14"), ("#0f766e", "Buzzer ← D25"),
-          ("#0284c7", "595 DS (14) ← D23"), ("#7c3aed", "595 ST_CP (12) ← D19"), ("#c2410c", "595 SH_CP (11) ← D18"),
+          ("#0284c7", "595 DS (14) ← D23"), ("#7c3aed", "595 ST_CP (12) ← D18"), ("#c2410c", "595 SH_CP (11) ← D19"),
 ]
 for i, (c, l) in enumerate(legend):
     col, row = i % 2, i // 2
