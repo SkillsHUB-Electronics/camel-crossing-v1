@@ -65,9 +65,9 @@ Every car is counted for its side (0.3 s debounce) and is "approaching" for **8 
 from the 400 m point to the crossing). No echo pulse at all is a sensor fault.
 
 **What a car detection does (roadside lamps):** the roadside warning signs (300 / 200 / 100 m + camel-crossing sign) only
-light while a camel is at the gate (or during a manual alert) — then both directions flash at 1 Hz. When a car passes the
-400 m sensor of either side during a camel, **the signs flash fast (4 Hz) and the buzzer sounds** for the approach time
-(the two sides are paralleled, so they cannot differ). A car with no camel at the gate is only counted (no lamps).
+**flash at 1 Hz** while a camel is at the gate (or during a manual alert), with or without a car detected. A car passing the
+400 m sensor of either side during a camel only makes **the buzzer sound** for the approach time (DANGER); it does not change
+the signs. A car with no camel at the gate is only counted.
 
 **Power (solar panel + battery):** two **INA219** modules on the I2C bus (D17 = SDA, D16 = SCL) measure the solar panel
 (INA219 #1, address 0x40: voltage and current) and the 18650 cell (INA219 #2, address 0x41: voltage and current, + = charging).
@@ -85,14 +85,14 @@ has stopped answering.
 | WARMUP | first 3 s after power-on | flashing | off | off |
 | CLEAR | no camel at the gate | flashing | off | off |
 | WARNING | camel confirmed at the gate (IR), or manual alert | flashing | **300/200/100 m signs flash** (1 Hz) + camel sign | off |
-| DANGER | WARNING **and** a car passed a 400 m sensor within the approach time | flashing | signs flash fast (4 Hz) | fast beeps |
+| DANGER | WARNING **and** a car passed a 400 m sensor within the approach time | flashing | signs flash 1 Hz (same as WARNING) | fast beeps |
 
 **Yellow caution lamp:** one lamp at the camel gate that **always flashes (1 Hz)**, camel or not, in every state. Side A and
 side B are wired in parallel on a single output (Q0), so both lamps flash together. There is no red / amber / green sequence any more.
 
 **Warning signs 300 / 200 / 100 m:** the signs of side A and side B are also paralleled (one output per distance, Q1–Q3, plus
-the camel-crossing sign on Q4). They flash while a camel is crossing; in DANGER (a car passed a 400 m sensor too) they flash fast.
-The two car sensors still count cars per side and raise DANGER, but they no longer choose the side whose signs flash fast.
+the camel-crossing sign on Q4). They flash (1 Hz) while a camel is crossing, whether a car is detected or not.
+The two car sensors still count cars per side and raise DANGER (buzzer), but they do not change the signs.
 
 ## 3. Wiring (ESP32 DevKit V1)
 

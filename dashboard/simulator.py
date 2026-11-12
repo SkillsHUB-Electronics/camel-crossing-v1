@@ -2,7 +2,7 @@
 ESP32 simulator — test the dashboard without hardware.
 Detection logic (camel gate: IR A / IR B alone confirms (no PIR), direction from the first IR, hold
 time; vehicle HC-SR04 at the 400 m point of each approach, pinging across the lane: median of 3, <= carCm = a car
-passing; that side's signs flash fast for approachSec), state machine, outputs (one yellow lamp always flashing, signs paralleled), settings
+passing; it only raises DANGER / the buzzer, the signs keep flashing at 1 Hz), state machine, outputs (one yellow lamp always flashing, signs paralleled), settings
 and the command channel are identical to the firmware (2.3.1), so every dashboard page can be tested.
 A solar panel + battery with two INA219 is simulated too (a 4-minute day / night cycle, 30x faster battery).
 
@@ -328,10 +328,8 @@ class Device:
         # yellow lamp: always flashing; the output test "signals" holds it on. Signs: both sides paralleled.
         sig = "on" if self.test == "signals" else "flash"
         sc = sw = "off"
-        if self.test == "signs":
+        if self.test == "signs" or hazard:    # flashing 1 Hz, with or without a car
             sc = sw = "flash"
-        elif hazard:
-            sc = sw = "fast" if danger else "flash"
         s_a = s_b = sw
         self.led = -1
         if self.test == "leds":           # one output at a time, 1 s each: Q0..Q4
@@ -413,7 +411,7 @@ class Device:
         def dist(c):   # -1 = nothing in range / no echo (the faults tell the two apart)
             return round(c.dist, 1) if 0 < c.dist < math.inf else -1
         return {
-            "id": self.cfg["name"], "mac": self.mac, "fw": "sim-2.4.0", "ip": "simulator",
+            "id": self.cfg["name"], "mac": self.mac, "fw": "sim-2.4.1", "ip": "simulator",
             "ssid": self.nets[0] if self.nets else "", "host": host, "rssi": random.randint(-62, -55),
             "up": int(t), "boot": "power on", "apName": "CamelGuard-Setup-" + self.mac.replace(":", "")[-4:],
             "ack": self.ack, "alert": self.alert, "test": self.test, "testSec": test_sec, "led": self.led,

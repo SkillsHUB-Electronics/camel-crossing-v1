@@ -49,7 +49,7 @@ Kode tes (T-xx) sama dengan Testing Plan di proposal v3.4.
 ## Tahap 3 — Output (T-10, 15 menit)
 Settings → **Output Test**, durasi 10 dtk:
 - [ ] Test Yellow Lamp → lampu kuning kedua sisi menyala **tetap** (tidak berkedip) selama tes, lalu kembali berkedip.
-- [ ] Test Warning Signs → rambu unta dan rambu 300/200/100 m kedua sisi berkedip bersama.
+- [ ] Test Warning Signs → rambu unta dan rambu 300/200/100 m kedua sisi berkedip bersama (1 Hz).
 - [ ] Test Each LED → satu keluaran 74HC595 menyala per detik (5 detik). Dashboard menulis keluaran mana yang
       seharusnya menyala ("Q1 (pin 1) — Warning sign 300 m (A + B)"); cocokkan dengan LED yang menyala.
 - [ ] Test Buzzer → bip 0,5 dtk / dtk.
@@ -78,7 +78,7 @@ Catat hasil di tabel Test Record proposal:
 - [ ] T-03: jalankan unta dari sisi A ke sisi B melewati gerbang (20 kali) → Serial `[DETECT] Camel CONFIRMED (IR A),
       coming from side A`, dashboard **CAMEL · From Side A**, dihitung **satu** kali (Settings → Device → Camels Since Boot).
 - [ ] T-03: ulangi dari sisi B ke sisi A (20 kali) → **From Side B**, dihitung satu kali.
-- [ ] Setiap kali (T-04): rambu 300/200/100 m dan rambu unta berkedip ≤ 0.5 dtk; lampu kuning tetap berkedip seperti biasa.
+- [ ] Setiap kali (T-04): rambu 300/200/100 m dan rambu unta berkedip 1 Hz ≤ 0.5 dtk dan padam setelah unta pergi (+ hold time); lampu kuning tetap berkedip seperti biasa.
 - [ ] T-05: halangi IR hanya sekejap (< 150 ms, mis. satu kedipan tangan) → tidak ada peringatan; IR harus terhalang
       ≥ *IR Confirmation* (3 × 50 ms) berturut-turut. Naikkan *IR Confirmation* bila ada pemicu palsu dari pantulan.
 - [ ] T-09: unta masuk hanya dari sisi B (10 kali) → tetap WARNING, dashboard menunjukkan **From Side B**.
@@ -94,8 +94,8 @@ Catat hasil di tabel Test Record proposal:
 ## Tahap 8 — Lampu kuning & DANGER (T-11 … T-15, 20 menit)
 - [ ] Rekam video lampu kuning saat unta masuk gerbang dan saat gerbang kosong: berkedip 1 Hz terus, **tidak pernah mati**,
       sisi A dan B selalu serempak (satu output).
-- [ ] T-12: unta di gerbang + mobil lewat sensor 400 m (sisi A atau B) → **DANGER**: rambu 300/200/100 m + rambu unta
-      berkedip cepat (kedua sisi bersama), buzzer bip cepat.
+- [ ] T-12: unta di gerbang + mobil lewat sensor 400 m (sisi A atau B) → **DANGER**: buzzer bip cepat; rambu 300/200/100 m + rambu unta
+      tetap berkedip 1 Hz seperti sebelum ada mobil (tidak berubah).
 - [ ] Mobil lewat sensor 400 m **tanpa** unta di gerbang → hanya dihitung, rambu tetap mati.
 - [ ] T-14: keluarkan unta dari gerbang → CLEAR setelah IR kembali Clear + hold time (5 dtk).
 - [ ] T-15: satu mobil saja saat ada unta → DANGER ± approach time (default 8 dtk), lalu kembali WARNING.
@@ -126,5 +126,5 @@ Hanya bila INA219, TP4056, baterai 18650 dan panel surya sudah dipasang (tanpa I
       modul INA sama sekali → tidak ada fault, hanya kotak Power yang tersembunyi.
 
 ## Tahap 11 — Demonstrasi (T-21)
-Skenario: gerbang kosong → mobil lewat tanpa unta (rambu mati) → unta dari sisi A → mobil dari sisi A (DANGER, rambu A cepat) → unta dari sisi B → mobil dari sisi B →
+Skenario: gerbang kosong → mobil lewat tanpa unta (rambu mati) → unta dari sisi A → mobil dari sisi A (DANGER, buzzer bip cepat, rambu tetap berkedip 1 Hz) → unta dari sisi B → mobil dari sisi B →
 tangan lewat IR saja (diabaikan) → CLEAR. Semua state dan arah unta harus tampil benar di maket dan di dashboard.
