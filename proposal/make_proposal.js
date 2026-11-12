@@ -76,17 +76,16 @@ const budget = [
   ["ESP32 DevKit V1 (30-pin)", "Dual-core 240 MHz, WiFi, 12-bit ADC", 1, 35, "Electronics"],
   ["Ultrasonic sensor HC-SR04", "Car sensors at the 400 m point of each approach, across the lane, 5 V", 2, 12, "Electronics"],
   ["IR obstacle sensor FC-51 (digital OUT)", "Camel gate: one at each edge of the crossing (side A / side B)", 2, 6, "Electronics"],
-  ["PIR motion sensor HC-SR501", "Camel gate: between the two IR sensors, confirms a moving animal", 1, 10, "Electronics"],
-  ["74HC595 shift register", "one per direction (chained): signal, 3 warning signs, camel sign (+1 spare)", 3, 3, "Electronics"],
-  ["LED kit 5 mm (red/amber/green)", "Traffic signals and warning signs", 1, 12, "Electronics"],
+  ["74HC595 shift register", "one chip: yellow lamp, 3 warning signs, camel sign (+3 spare); sides A and B in parallel", 1, 3, "Electronics"],
+  ["LED kit 5 mm (yellow/amber)", "Yellow caution lamps and warning-sign LEDs", 1, 12, "Electronics"],
   ["Resistor kit (220 Ω, 1 k, 2 k, 100 k)", "LED limiting, ECHO dividers, buzzer transistor", 1, 20, "Electronics"],
   ["Active buzzer 5 V + NPN 2N2222", "Warning at the crossing (herder)", 1, 10, "Electronics"],
-  ["Amber LEDs 5 mm (extra)", "Flashers on the 300/200/100 m warning signs", 1, 8, "Electronics"],
+  ["Yellow LEDs 5 mm (extra)", "Two lamps per output (side A + B) and the flashers on the 300/200/100 m warning signs", 1, 8, "Electronics"],
   ["INA219 current / voltage sensor module (I2C)", "One on the solar panel, one on the battery", 2, 12, "Electronics"],
   ["Solar panel 6 V 2 W", "Charges the battery in daylight", 1, 30, "Power"],
   ["TP4056 charger module with battery protection", "1 A Li-ion charger, over-discharge protection", 1, 6, "Power"],
   ["18650 Li-ion cell + holder", "≈ 2600 mAh, 3.7 V", 1, 25, "Power"],
-  ["MT3608 boost converter", "Battery 3.7 V → 5.1 V for the ESP32, HC-SR04, PIR and buzzer", 1, 5, "Power"],
+  ["MT3608 boost converter", "Battery 3.7 V → 5.1 V for the ESP32, HC-SR04 and buzzer", 1, 5, "Power"],
   ["5 V 2 A USB adapter + cable", "Bench supply and backup", 1, 25, "Power"],
   ["Breadboard 830 points", "Prototyping", 2, 15, "Prototyping"],
   ["Jumper wire set (M-M, M-F)", "Connections", 1, 20, "Prototyping"],
@@ -96,7 +95,7 @@ const budget = [
   ["Warning sign boards ×6 (300/200/100 m)", "Printed faces on sticks, two flasher LEDs each", 1, 25, "Miniature"],
   ["Toy cars (≈ 1:24–1:32)", "Vehicles for the vehicle sensors", 3, 8, "Miniature"],
   ["Paint, sand texture, road tape, median, fence", "Desert highway scenery with camel fence", 1, 40, "Miniature"],
-  ["Sensor gates, posts & sign boards (3D print / acrylic)", "Car-sensor posts at the 400 m points (HC-SR04), camel gate posts (IR + PIR), sign faces", 1, 40, "Miniature"],
+  ["Sensor gates, posts & sign boards (3D print / acrylic)", "Car-sensor posts at the 400 m points (HC-SR04), camel gate posts (IR), sign faces", 1, 40, "Miniature"],
   ["Consumables (glue, heat-shrink, screws, tape)", "Assembly", 1, 25, "Misc."],
 ];
 const subtotal = budget.reduce((a, r) => a + r[2] * r[3], 0);
@@ -108,8 +107,8 @@ const plan = [
   ["Research, proposal & approval", 1, 1, "BFDBFE"],
   ["System design: block diagram, schematic, BOM", 1, 2, "BFDBFE"],
   ["Order & receive components", 2, 3, "E5E7EB"],
-  ["Sensor tests on breadboard (HC-SR04, IR obstacle, PIR)", 3, 4, "FDE68A"],
-  ["Output tests (2× 74HC595 signals, signs, buzzer)", 4, 4, "FDE68A"],
+  ["Sensor tests on breadboard (HC-SR04, IR obstacle)", 3, 4, "FDE68A"],
+  ["Output tests (74HC595: yellow lamp, signs, buzzer)", 4, 4, "FDE68A"],
   ["Solar panel + battery build, INA219 tests", 5, 6, "FDE68A"],
   ["Firmware: detection + state machine", 4, 6, "FDE68A"],
   ["Firmware: WiFi, telemetry, settings (NVS)", 5, 6, "FDE68A"],
@@ -124,23 +123,22 @@ const plan = [
 
 const tests = [
   ["T-01", "Unit", "Car sensor at the 400 m point", "Empty lane, then hold a block at 5, 10, 15 cm across the lane from each sensor, 10 readings each (dashboard: Sensors → Sensors Now)", "Empty lane reads 'Lane Empty'; distance error ≤ ±1 cm on both sensors"],
-  ["T-02", "Unit", "Camel gate sensors", "Pass a hand / figure through IR A and IR B 10 times each; move in front of the PIR 10 times (adjust the pots)", "IR blocked only while something is in the gate; PIR shows motion every time; nothing shown when the gate is empty"],
+  ["T-02", "Unit", "Camel gate sensors", "Pass a hand / figure through IR A and IR B 10 times each (adjust the pots)", "IR blocked only while something is in the gate; nothing shown when the gate is empty"],
   ["T-03", "Unit", "Camel detection and direction", "Walk a camel figure through the gate from side A to B 20 times, then from B to A 20 times", "≥ 18/20 confirmed in each direction (≥ 90 %); correct side shown; counted once per crossing"],
   ["T-04", "Unit", "Warning signs 300/200/100 m", "Place a camel on the crossing 10 times; watch all six signs", "All six flash (wig-wag) within 0.5 s, both directions, 10/10"],
-  ["T-05", "Unit", "IR-only rejection", "Cover the PIR; break IR A and IR B with a hand or a toy car, 10 times each", "No warning; each trigger logged as 'IR without PIR — ignored'"],
+  ["T-05", "Unit", "Short IR flicker rejection", "Break IR A and IR B for less than 0.15 s (a quick hand wave), 10 times each", "No warning: an IR must stay blocked for the confirmation readings (3 × 50 ms)"],
   ["T-06", "Unit", "Vehicle counting (HC-SR04)", "Roll a car past the 400 m sensor of side A 20 times, then side B 20 times (no camel)", "20/20 counted on the correct side, no double counts; signs stay off without a camel"],
   ["T-07", "Unit", "Sensor fault detection", "Unplug the ECHO wire of vehicle sensor A for 5 s; later keep IR A blocked for more than 2 minutes", "Fault US-A within 2 s and OBJ-A after 2 min on the dashboard; both clear when fixed"],
-  ["T-08", "Unit", "PIR window setting", "Settings → PIR Confirmation Window: 1 s, then 3 s; each time break IR A and move in front of the PIR 2 s later", "1 s: not confirmed (ignored); 3 s: camel confirmed; both changes show 'Applied'"],
   ["T-09", "Unit", "Camel from side B", "Walk the camel into the gate from side B only, 10 times", "WARNING every time; dashboard shows 'From Side B'"],
-  ["T-10", "Unit", "Outputs", "Settings → Output Test: buzzer, signals, signs, each LED one by one", "Each output works; each LED lights in the order named by the dashboard; test stops after the set time"],
+  ["T-10", "Unit", "Outputs", "Settings → Output Test: buzzer, yellow lamp, signs, each LED one by one", "Each output works; each LED lights in the order named by the dashboard; test stops after the set time"],
   ["T-11", "Integration", "Detection latency", "Place a camel figure; timestamp video of sign LED", "Sign flashing ≤ 0.5 s after placement"],
   ["T-12", "Integration", "DANGER escalation per side", "Camel at the gate, then roll a car past the 400 m sensor of side A, later side B", "Signs of that car's side flash fast + buzzer ≤ 0.3 s after the sensor fires; the other side keeps the normal flash"],
-  ["T-13", "Integration", "Signal sequence timing", "Place a camel 10 times; film signal A and B", "Green → flashing green 3 s ± 0.2 → amber 3 s ± 0.2 → red; never skipped, A = B"],
+  ["T-13", "Integration", "Yellow lamp", "Film the yellow lamp with and without a camel at the gate", "Flashes at 1 Hz in every state, never off; side A and B lamps flash together"],
   ["T-14", "Integration", "Hold & clear", "Remove the figure and time the return to CLEAR", "Clear after hold time ±0.5 s; red ≥ 2 s then green; no flicker"],
   ["T-15", "Integration", "Approach window", "Camel at the gate; one car passes a 400 m sensor; time the DANGER state", "DANGER for the approach time (default 8 s) ±0.3 s, then back to WARNING"],
   ["T-16", "System", "Works without WiFi", "Switch the WiFi off, repeat T-03 and T-12", "Local warnings still work; dashboard shows OFFLINE"],
   ["T-17", "System", "Dashboard telemetry", "Compare dashboard with serial monitor for 10 min", "≤ 2 s delay; no missing hazard in the log"],
-  ["T-18", "System", "Settings from the dashboard", "Change IR confirmation, PIR window, vehicle distance, hold time, approach time and signal timing", "Applied on the ESP32 and confirmed ('Applied')"],
+  ["T-18", "System", "Settings from the dashboard", "Change IR confirmation, vehicle distance, hold time and approach time", "Applied on the ESP32 and confirmed ('Applied')"],
   ["T-19", "System", "Manual alert (all crossings)", "Overview → ALERT ALL, then STOP ALERT", "All online crossings warn within 2 s and stop"],
   ["T-20", "System", "Endurance", "Run the model for 2 hours with random scenarios", "No reset, no false DANGER, log complete"],
   ["T-22", "System", "Power measurement (INA219)", "Compare the dashboard with a multimeter: battery voltage and current, panel voltage and current", "Voltage within ±0.05 V and current within ±10 % of the multimeter"],
@@ -151,8 +149,7 @@ const tests = [
 ];
 
 const risks = [
-  ["A hand, a toy car or a reflection breaks a camel IR beam", "Medium", "An IR trigger needs PIR motion within 3 s; IR-only triggers are ignored and logged (test T-05)"],
-  ["PIR triggered by people moving next to the model, or slow to settle after power-on", "Medium", "The PIR only confirms an IR trigger, never alone; sensitivity pot; 30–60 s settling time; time pot at minimum"],
+  ["A hand, a toy car or a reflection breaks a camel IR beam", "Medium", "An IR must stay blocked for the confirmation readings (adjustable); adjust the module range pot; a camel IR blocked for 2 minutes raises fault OBJ (test T-05)"],
   ["The car sensor across the lane sees the far roadside or fence", "Medium", "Median of three readings; detection limit (lane width) adjustable with the live reading shown; fault CAR after 2 min"],
   ["The two ultrasonic sensors hear each other", "Medium", "Sensors ping in turns, 25 ms apart (firmware)"],
   ["HC-SR04 5 V ECHO damages the ESP32 input", "High", "1 kΩ / 2 kΩ voltage divider on both ECHO lines, checked with a multimeter before connecting"],
@@ -198,7 +195,7 @@ children.push(p("Because the project is a school capstone, the system is built a
 // 2
 children.push(h1("2. Project Title and Description"));
 children.push(p([t("Title: ", { bold: true }), t("Advanced Camel Crossing Hazard Detection & Highway Safety System (“Camel Guard”).")]));
-children.push(p("The system watches a camel crossing on a divided highway and warns drivers automatically. A camel gate at the crossing has two infrared (IR) obstacle sensors — one at the side-A edge and one at the side-B edge — and a passive-infrared (PIR) motion sensor in the middle between them. An ESP32 microcontroller accepts a camel only when an IR sensor is triggered and the PIR confirms a moving animal within a short window (3 s); the IR sensor that fired first tells from which side the camel is coming, and an IR trigger without motion (a hand, a toy car, a reflection) is ignored. While a camel is crossing, advance warning signs 300 m, 200 m and 100 m before the crossing flash in both directions, the camel-crossing sign flashes, and two traffic signals stop the traffic with the UAE sequence: solid green, flashing green for 3 seconds, amber for 3 seconds, then red. Two ultrasonic (HC-SR04) sensors stand beside the road at the “400 m” point of each approach, before the 300 m sign, and detect a car passing that point; when a car passes while a camel is at the crossing, the system escalates to DANGER: the roadside warning signs on that car’s side flash fast and a buzzer at the crossing warns the camel herder."));
+children.push(p("The system watches a camel crossing on a divided highway and warns drivers automatically. A camel gate at the crossing has two infrared (IR) obstacle sensors — one at the side-A edge and one at the side-B edge. An ESP32 microcontroller treats an IR sensor that stays blocked for a few readings as a camel; the IR sensor that fired first tells from which side the camel is coming. There is no PIR sensor. While a camel is crossing, advance warning signs 300 m, 200 m and 100 m before the crossing flash in both directions, and the camel-crossing sign flashes. A yellow caution lamp at the camel gate flashes all the time, whether a camel is present or not; the lamps and signs of side A and side B are wired in parallel, so one 74HC595 drives both sides. Two ultrasonic (HC-SR04) sensors stand beside the road at the “400 m” point of each approach, before the 300 m sign, and detect a car passing that point; when a car passes while a camel is at the crossing, the system escalates to DANGER: the roadside warning signs flash fast and a buzzer at the crossing warns the camel herder."));
 children.push(p("All decisions are made on the ESP32 itself, so the warnings keep working without WiFi. In addition, the ESP32 sends its data every second to a PC dashboard that shows a live animated view of the road, charts, a hazard history, a vehicle log and a settings page from which every setting can be changed without re-programming the board. The model is powered by a solar panel and a battery; two INA219 sensors measure the panel and the battery, so the dashboard also shows the battery charge, the charging condition and a low-battery warning."));
 
 // 3
@@ -207,7 +204,7 @@ children.push(p("On UAE highways camels may cross unexpectedly, especially at ni
 
 // 4
 children.push(h1("4. Abstract"));
-children.push(p("The Camel Guard system is an embedded IoT prototype designed to improve safety at camel crossings on UAE highways. It is demonstrated on a 150 × 60 cm miniature highway model. A camel gate with two IR obstacle sensors (one at each edge of the crossing) and a PIR motion sensor between them recognises camels: an IR trigger must be confirmed by PIR motion within a short window, the first IR gives the direction, and a hold timer keeps the warning on while the animal crosses; IR triggers without motion are ignored and logged. Two HC-SR04 ultrasonic sensors at the 400 m point of each approach, beside the lane and pinging across it, detect passing cars (median of three readings); a car passing during a camel makes the signs on its side flash fast. An ESP32 runs a four-state machine (WARMUP, CLEAR, WARNING, DANGER) and drives, through two chained 74HC595 shift registers (one per direction), six advance warning signs at 300 / 200 / 100 m (both directions) that flash while a camel is crossing, the camel-crossing sign and two traffic signals that follow the UAE sequence green → flashing green (3 s) → amber (3 s) → red — plus a buzzer at the crossing. The device is powered by a solar panel and an 18650 battery; two INA219 sensors on the I2C bus measure the panel and the battery (voltage, current, charging condition)."));
+children.push(p("The Camel Guard system is an embedded IoT prototype designed to improve safety at camel crossings on UAE highways. It is demonstrated on a 150 × 60 cm miniature highway model. A camel gate with two IR obstacle sensors (one at each edge of the crossing) recognises camels: an IR blocked for a few readings is a camel, the first IR gives the direction, and a hold timer keeps the warning on while the animal crosses. Two HC-SR04 ultrasonic sensors at the 400 m point of each approach, beside the lane and pinging across it, detect passing cars (median of three readings); a car passing during a camel makes the signs flash fast. An ESP32 runs a four-state machine (WARMUP, CLEAR, WARNING, DANGER) and drives, through one 74HC595 shift register (side A and side B in parallel), the advance warning signs at 300 / 200 / 100 m that flash while a camel is crossing, the camel-crossing sign and an always-flashing yellow caution lamp — plus a buzzer at the crossing. The device is powered by a solar panel and an 18650 battery; two INA219 sensors on the I2C bus measure the panel and the battery (voltage, current, charging condition)."));
 children.push(p("The ESP32 sends JSON telemetry over WiFi to a local Python dashboard that provides a live road view, charts, event and hazard logs, a vehicle log per direction, remote configuration stored in the ESP32’s flash, output tests, multi-crossing overview and firmware tools. A software simulator reproduces the firmware logic so the dashboard can be developed and demonstrated without hardware. The expected outcome is a reliable, low-cost and energy-efficient smart-road demonstrator that shows how sensing, embedded decision making and IoT monitoring can reduce accident risk and support the UAE’s smart-city initiatives."));
 
 // 5
@@ -218,7 +215,6 @@ children.push(table(["Technology", "Strengths", "Limitations", "Use in this proj
   ["Ultrasonic (HC-SR04)", "Detects an object in its beam and its distance; works day and night; cheap", "Range ≤ 4 m; soft surfaces echo weakly; ECHO is a 5 V signal", "Car sensors at the 400 m point of each approach (across the lane)"],
   ["IR obstacle sensor (FC-51)", "Cheap, fast, simple digital output, adjustable range, 3.3 V", "Short range (2–30 cm); reacts to any object; affected by strong sunlight", "Camel gate: one at each edge (gives the direction)"],
   ["INA219 (I2C)", "Measures voltage and current (0.1 mA steps with a 0.1 Ω shunt); two addresses share one bus", "Shunt must be in series with the supply; up to 3.2 A", "Solar panel and battery monitoring"],
-  ["PIR (passive infrared)", "Cheap, low power, wide angle; reacts only to warm moving bodies", "Weak when the ground is near body temperature (desert summer); slow to reset; no position", "Camel gate: confirms an IR trigger (between IR A and B)"],
   ["Radar / LiDAR", "Long range, all weather", "Costly, complex", "Future work (real road)"],
   ["AI camera", "Can recognise animals", "Needs computing power, privacy, night lighting", "Out of scope (future work)"],
 ], [1700, 2300, 2900, 2738]));
@@ -229,9 +225,9 @@ children.push(p("Microcontroller: the ESP32 was chosen instead of the Arduino Un
 children.push(h1("6. Aims and Objectives"));
 children.push(p("Aim: to design, build and test a miniature smart highway-safety system that detects camels at a camel crossing and warns drivers automatically from 300 m before the crossing, with remote monitoring."));
 [
-  "Detect a camel figure crossing in either direction in at least 90 % of trials, report the side it came from, and ignore IR triggers that the PIR does not confirm (for example a hand or a toy car).",
+  "Detect a camel figure crossing in either direction in at least 90 % of trials, report the side it came from, using only the two IR sensors of the camel gate.",
   "Flash all six advance warning signs (300 / 200 / 100 m, both directions) within 0.5 s of a camel entering the crossing.",
-  "Stop the traffic for every hazard with the UAE signal sequence (green → flashing green 3 s → amber 3 s → red), never skipping a phase.",
+  "Show a yellow caution lamp that flashes continuously at the camel gate, and flash the warning signs 300 / 200 / 100 m while a camel is crossing.",
   "Detect a car passing the 400 m point and, if a camel is at the gate, escalate to DANGER within 0.3 s (that side’s signs flash fast + buzzer).",
   "Count every vehicle passing a vehicle sensor on the correct side (at least 95 % of trials) and log the vehicles that approached during a hazard.",
   "Measure the solar panel and the battery (voltage, current, charging condition) and warn on the dashboard when the battery is low.",
@@ -244,8 +240,8 @@ children.push(p("Aim: to design, build and test a miniature smart highway-safety
 children.push(h1("7. Project Scope"));
 children.push(h2("7.1 Included"));
 [
-  "A working miniature highway model (about 1:24 scale) with one camel crossing and its camel gate, two car-sensor posts at the 400 m points, two traffic signals, the camel-crossing sign and six advance warning signs.",
-  "Electronics: ESP32, a camel gate with 2 IR obstacle sensors and a PIR, 2 HC-SR04 ultrasonic sensors (vehicle), two 74HC595 (one per direction, 7 LED outputs each) and a buzzer.",
+  "A working miniature highway model (about 1:24 scale) with one camel crossing and its camel gate, two car-sensor posts at the 400 m points, a yellow caution lamp, the camel-crossing sign and the advance warning signs (sides A and B in parallel).",
+  "Electronics: ESP32, a camel gate with 2 IR obstacle sensors, 2 HC-SR04 ultrasonic sensors (vehicle), one 74HC595 (5 LED outputs, side A and B in parallel) and a buzzer.",
   "Power: solar panel, TP4056 charger with protection, 18650 battery, MT3608 boost converter and two INA219 monitors (I2C).",
   "Firmware with detection, state machine, WiFi telemetry, settings in flash, setup access point and USB configuration.",
   "PC dashboard (Python, runs on the school laptop) and a simulator for testing without hardware.",
@@ -265,50 +261,39 @@ children.push(h1("8. System Design"));
 children.push(h2("8.1 Block diagram"));
 children.push(...img("block_diagram.png", 1400, 720, "Figure 1 — System block diagram"));
 children.push(h2("8.2 How the camel crossing is monitored"));
-children.push(p("The camel fence guides the animals into a camel gate at the crossing. IR sensor A watches the side-A edge of the crossing, IR sensor B the side-B edge, and a PIR motion sensor on the median between them sees the warm, moving body of the animal. The ESP32 reads all three every 50 ms and combines them:"));
-children.push(p([t("camel = IR trigger (A or B) + PIR motion within the PIR window", { bold: true })], { align: AlignmentType.CENTER }));
+children.push(p("The camel fence guides the animals into a camel gate at the crossing. IR sensor A watches the side-A edge of the crossing and IR sensor B the side-B edge. The ESP32 reads both every 50 ms:"));
+children.push(p([t("camel = IR A or IR B blocked for the confirmation readings", { bold: true })], { align: AlignmentType.CENTER }));
 children.push(table(["What the sensors see", "Result", "Confirmation", "Shown on the dashboard"], [
-  ["IR A, then PIR motion within 3 s", "CAMEL from side A", "IR blocked 3 readings in a row (0.15 s) + PIR", "WARNING · From Side A"],
-  ["IR B, then PIR motion within 3 s", "CAMEL from side B", "same", "WARNING · From Side B"],
-  ["IR A or B, no PIR motion within 3 s", "ignored", "–", "event “IR without PIR — ignored”"],
-  ["PIR motion only", "no warning", "–", "PIR shown as Motion"],
+  ["IR A blocked", "CAMEL from side A", "IR blocked 3 readings in a row (0.15 s)", "WARNING · From Side A"],
+  ["IR B blocked", "CAMEL from side B", "same", "WARNING · From Side B"],
 ], [2700, 1800, 2700, 2438]));
 children.push(spacer());
-children.push(p("The PIR motion may come shortly before or after the IR trigger (window adjustable 1–10 s). The IR sensor that fired first gives the direction; when the camel leaves the gate through the other IR sensor it is the same camel and is counted once. The warning is held while an IR sensor or the PIR still sees the animal and for a hold time (default 5 s) after that, so the signs do not flicker while it moves. If no PIR is fitted, the dashboard can switch it off and a single IR trigger then confirms a camel (less accurate). The dashboard shows a sensor fault if a camel IR stays blocked for two minutes (OBJ) or the PIR reports motion for two minutes (PIR)."));
+children.push(p("The IR sensor that fired first gives the direction; when the camel leaves the gate through the other IR sensor it is the same camel and is counted once. The warning is held while an IR sensor still sees the animal and for a hold time (default 5 s) after that, so the signs do not flicker while it moves. The dashboard shows a sensor fault if a camel IR stays blocked for two minutes (OBJ)."));
 children.push(h2("8.3 State machine and outputs"));
 children.push(...img("state_machine.png", 1400, 600, "Figure 2 — Road state machine"));
-children.push(table(["State", "Condition", "Signals A & B", "Warning signs", "Buzzer"], [
-  ["WARMUP", "first 3 s after power-on", "steady amber", "off", "off"],
-  ["CLEAR", "no confirmed camel at the gate", "green", "off", "off"],
-  ["WARNING", "camel confirmed (IR + PIR) or manual alert", "sequence to red (8.5)", "300/200/100 m signs + camel sign flash (1 Hz)", "off"],
-  ["DANGER", "WARNING + a car passed a 400 m sensor within the approach time", "sequence to red (8.5)", "signs on that car’s side flash fast (4 Hz), the other side 1 Hz", "fast beeps"],
+children.push(table(["State", "Condition", "Yellow lamp", "Warning signs", "Buzzer"], [
+  ["WARMUP", "first 3 s after power-on", "flashing", "off", "off"],
+  ["CLEAR", "no camel at the gate", "flashing", "off", "off"],
+  ["WARNING", "camel confirmed (IR) or manual alert", "flashing", "300/200/100 m signs + camel sign flash (1 Hz)", "off"],
+  ["DANGER", "WARNING + a car passed a 400 m sensor within the approach time", "flashing", "signs flash fast (4 Hz)", "fast beeps"],
 ], [1300, 3100, 1700, 2238, 1300], { fills: (r) => ["FEF3C7", "DCFCE7", "FFEDD5", "FEE2E2"][r] }));
 children.push(spacer());
 children.push(h2("8.4 Advance warning signs (300 / 200 / 100 m)"));
-children.push(p("Drivers on a highway need time to react, so the first warning appears long before the crossing. Three warning signs stand before the crossing on each approach, 300 m, 200 m and 100 m away. Each sign shows a camel and the distance, and has two amber flasher lamps on top. While a camel is crossing, all six signs flash with the two lamps alternating (wig-wag, 1 Hz); when a vehicle is approaching the camel (DANGER) they flash fast (4 Hz). In the model the signs keep the correct order and spacing ratio but not the real distance. Each direction has its own 74HC595 with the same layout — chip #1 serves side A and chip #2 side B — so the two sides are wired identically and can be tested one after the other."));
-children.push(table(["Output (both chips)", "Sign", "Direction", "Behaviour"], [
-  ["Q0 / Q1 / Q2 (pins 15, 1, 2)", "Traffic signal red / amber / green", "own direction", "UAE sequence (8.5)"],
-  ["Q3 / Q4 / Q5 (pins 3, 4, 5)", "Warning signs 300 m / 200 m / 100 m", "own direction", "off → flashing while a camel is crossing → fast when a car passed this side’s 400 m sensor"],
-  ["Q6 (pin 6)", "Camel crossing sign", "at the crossing", "flashing in WARNING, fast in DANGER"],
-  ["Q7 (pin 7)", "spare", "–", "not connected; chip #1 Q7′ (pin 9) feeds chip #2 DS (pin 14)"],
+children.push(p("Drivers on a highway need time to react, so the first warning appears long before the crossing. Three warning signs stand before the crossing on each approach, 300 m, 200 m and 100 m away. Each sign shows a camel and the distance, and has two amber flasher lamps on top. While a camel is crossing, the signs flash (1 Hz); when a vehicle is approaching the camel (DANGER) they flash fast (4 Hz). In the model the signs keep the correct order and spacing ratio but not the real distance. The signs of side A and side B are wired in parallel on the same output, so one 74HC595 drives both sides and they always show the same."));
+children.push(table(["Output (74HC595)", "Sign", "Direction", "Behaviour"], [
+  ["Q0 (pin 15)", "Yellow caution lamp", "A + B in parallel", "always flashing (1 Hz), in every state"],
+  ["Q1 / Q2 / Q3 (pins 1, 2, 3)", "Warning signs 300 m / 200 m / 100 m", "A + B in parallel", "off → flashing while a camel is crossing → fast in DANGER"],
+  ["Q4 (pin 4)", "Camel crossing sign", "A + B in parallel", "flashing in WARNING, fast in DANGER"],
+  ["Q5 / Q6 / Q7 (pins 5, 6, 7)", "spare", "–", "not connected"],
 ], [1800, 2300, 1900, 3638]));
 children.push(spacer());
-children.push(h2("8.5 Traffic signal sequence (UAE)"));
-children.push(p("Whenever a hazard appears the traffic is stopped with the same sequence that UAE drivers know from normal junctions. A phase is never skipped: jumping straight to red in front of a moving car would be more dangerous than the hazard itself, so a vehicle that approaches during the sequence is handled by the fast-flashing warning signs and the buzzer instead."));
-children.push(table(["Phase", "Signal", "Duration", "Meaning"], [
-  ["1", "Solid green", "while the road is clear", "Vehicles may pass"],
-  ["2", "Flashing green", "3 s (about 3 flashes, adjustable 1–10 s)", "Early warning: the signal is about to change"],
-  ["3", "Amber", "3 s (adjustable 1–10 s)", "Prepare to stop"],
-  ["4", "Red", "while the hazard lasts, at least 2 s", "Vehicles must stop completely"],
-  ["→", "Solid green", "after the crossing is clear", "Back to phase 1"],
-], [700, 1800, 3300, 3838], { fills: (r) => ["DCFCE7", "DCFCE7", "FEF3C7", "FEE2E2", "F5F7FA"][r] }));
-children.push(spacer());
-children.push(p("Once the flashing green has started, the sequence always runs on to red, even if the hazard disappears in the meantime — a driver who has seen flashing green must not get green again without a red phase. Both signals (A and B) show the same aspect. The remaining seconds of each phase are shown on the dashboard."));
+children.push(h2("8.5 Yellow caution lamp"));
+children.push(p("A yellow caution lamp at the camel gate flashes at 1 Hz all the time, in every state and whether a camel is present or not. The lamps of side A and side B are wired in parallel on one 74HC595 output (Q0), so both flash together. The red / amber / green signal sequence of earlier versions was removed to keep the circuit simple: the warning for the drivers is the yellow lamp plus the advance signs, and a vehicle that arrives is also warned by the fast-flashing signs and the buzzer."));
 children.push(h2("8.6 Vehicle detection"));
 children.push(p("One HC-SR04 ultrasonic sensor stands beside each approach at the “400 m” point, before the 300 m warning sign (about 400 m before the crossing on a real road; scaled on the model), and pings across its own lane. It is a pass-by detector: it does not measure how far a car is from the crossing, it only tells that a car is passing that point. An empty lane gives no echo in range (“Lane Empty”); a car in front of the sensor gives a short reading. Each sensor is read every 50 ms (the two take turns, 25 ms apart, so they cannot hear each other), the echo is timed by an interrupt and a median of three readings removes single wrong echoes. A reading at or below the detection limit (default 15 cm, adjustable 3–150 cm, set a little below the lane width) is a car. Every car that passes is counted for its side; a debounce of 0.3 s prevents one car from being counted twice. If a sensor gives no echo pulse at all for one second the dashboard shows fault US; if it reports a car for two minutes, fault CAR. After a car has passed the 400 m point, it is treated as approaching the crossing for the approach time (default 8 s, adjustable 1–20 s) — about the time a toy car needs from the sensor to the crossing. The roadside lamps (the 300 / 200 / 100 m warning signs and the camel-crossing sign) light only while a camel is at the gate; if a car passes during that time, the state becomes DANGER: the signs on that car’s side flash fast (4 Hz) and the buzzer sounds, while the signs of the other direction keep their normal 1 Hz flash. A car with no camel at the gate is only counted. With one sensor per side the system knows that a vehicle is coming and from which side, but it does not measure speed; a second sensor per side (speed trap) is listed as a future improvement."));
 
 children.push(h2("8.7 Power supply and battery monitoring"));
-children.push(p("The miniature highway runs from a small solar panel and a Li-ion battery; a USB adapter serves as bench supply and backup. The panel charges the 18650 cell through a TP4056 module that has a protection circuit, and an MT3608 boost converter turns the battery voltage into the 5.1 V that the ESP32, the HC-SR04 sensors, the PIR and the buzzer need. Two INA219 modules measure the system over the I2C bus (two wires, SDA and SCL, shared by both): INA219 #1 sits between the panel and the charger and gives the panel voltage and current; INA219 #2 sits between the battery node and the cell and gives the battery voltage and the current into (+) or out of (−) the cell."));
+children.push(p("The miniature highway runs from a small solar panel and a Li-ion battery; a USB adapter serves as bench supply and backup. The panel charges the 18650 cell through a TP4056 module that has a protection circuit, and an MT3608 boost converter turns the battery voltage into the 5.1 V that the ESP32, the HC-SR04 sensors and the buzzer need. Two INA219 modules measure the system over the I2C bus (two wires, SDA and SCL, shared by both): INA219 #1 sits between the panel and the charger and gives the panel voltage and current; INA219 #2 sits between the battery node and the cell and gives the battery voltage and the current into (+) or out of (−) the cell."));
 children.push(table(["State shown", "Condition measured", "Meaning"], [
   ["Charging", "battery current > +20 mA", "the panel charges the battery"],
   ["Full", "battery ≥ 4.10 V and almost no current", "the TP4056 has finished charging"],
@@ -327,10 +312,9 @@ children.push(h2("9.1 Components"));
 children.push(table(["Component", "Function", "Key specification"], [
   ["ESP32 DevKit V1", "Main controller, WiFi", "240 MHz dual-core, 520 KB RAM, 3.3 V logic"],
   ["IR obstacle sensor ×2 (camel gate)", "Something at the side-A / side-B edge of the crossing", "FC-51, digital OUT active LOW, 3.3 V"],
-  ["PIR HC-SR501 (camel gate)", "Warm moving body between IR A and IR B: confirms the camel", "5 V supply, 3.3 V digital OUT, time pot at minimum"],
   ["HC-SR04 ultrasonic ×2 (vehicle)", "Car passing the 400 m point of side A / B (beside the lane, across it)", "2–400 cm, 5 V, ECHO needs a 1 kΩ / 2 kΩ divider"],
-  ["74HC595 ×2 (chained)", "one per direction: signal R/A/G, 300/200/100 m signs, camel sign", "Still only 3 GPIO, 3.3 V supply"],
-  ["LEDs + 220 Ω", "Traffic signals, camel sign, warning-sign flashers", "Red, amber, green 5 mm"],
+  ["74HC595 ×1", "yellow lamp, 300/200/100 m signs, camel sign (side A + B in parallel)", "Still only 3 GPIO, 3.3 V supply"],
+  ["LEDs + 220 Ω", "Yellow lamp, camel sign, warning-sign flashers (two LEDs per output)", "Yellow / amber 5 mm"],
   ["Active buzzer + NPN", "Warns the camel herder at the crossing", "5 V, driven via 2N2222 + 1 kΩ"],
   ["INA219 ×2 (I2C)", "#1 solar panel, #2 battery: voltage and current", "26 V / 3.2 A, 0.1 Ω shunt, addresses 0x40 and 0x41, 3.3 V"],
   ["Solar panel + TP4056 + 18650", "Daylight charging with battery protection", "6 V 2 W panel, 1 A charger, ≈ 2600 mAh cell"],
@@ -338,22 +322,22 @@ children.push(table(["Component", "Function", "Key specification"], [
 ], [2600, 3600, 3438]));
 children.push(h2("9.2 Pin assignment"));
 children.push(table(["ESP32 pin", "Connected to", "ESP32 pin", "Connected to"], [
-  ["GPIO 13", "Camel IR A (side-A edge) — OUT", "GPIO 23", "74HC595 #1 DS (pin 14)"],
-  ["GPIO 14", "Camel IR B (side-B edge) — OUT", "GPIO 18", "74HC595 SH_CP, pin 11 (both chips)"],
-  ["GPIO 4", "PIR (between IR A / B) — OUT", "GPIO 19", "74HC595 ST_CP, pin 12 (both chips)"],
+  ["GPIO 13", "Camel IR A (side-A edge) — OUT", "GPIO 23", "74HC595 DS (pin 14)"],
+  ["GPIO 14", "Camel IR B (side-B edge) — OUT", "GPIO 18", "74HC595 SH_CP, pin 11"],
+  ["GPIO 4", "free (was PIR)", "GPIO 19", "74HC595 ST_CP, pin 12"],
   ["GPIO 32", "Car HC-SR04 A (400 m) — TRIG", "GPIO 25", "Buzzer (via NPN)"],
   ["GPIO 33", "Car HC-SR04 A (400 m) — ECHO (divider)", "GPIO 2", "Onboard status LED"],
   ["GPIO 26", "Car HC-SR04 B (400 m) — TRIG", "GPIO 21 / 22", "free"],
   ["GPIO 27", "Car HC-SR04 B (400 m) — ECHO (divider)", "GPIO 17 / 16", "I2C SDA / SCL → INA219 #1 and #2"],
-  ["#1 Q7′ (pin 9)", "→ 74HC595 #2 DS (pin 14, chain)", "VIN / 3V3", "5 V: HC-SR04, PIR, buzzer · 3.3 V: IR, 74HC595, INA219"],
+  ["–", "–", "VIN / 3V3", "5 V: HC-SR04, buzzer · 3.3 V: IR, 74HC595, INA219"],
 ], [1500, 3319, 1500, 3319]));
 children.push(h2("9.3 Wiring diagram"));
 children.push(...img("wiring_diagram.png", 1640, 1540, "Figure 3 — Wiring diagram (docs/wiring_diagram.svg)"));
 children.push(h2("9.4 Miniature highway model"));
 [
   "Base: 150 × 60 cm MDF board, desert sand texture, divided highway: carriageway A and carriageway B with a median, about 34 cm wide in total.",
-  "One camel crossing in the middle with a camel fence along the road that guides the camels to it; the camel gate has an IR sensor post at each edge of the crossing and the PIR on the median between them.",
-  "On each approach: warning signs 300 m, 200 m and 100 m before the crossing (evenly spaced, not to scale), then the camel-crossing sign and the traffic signal.",
+  "One camel crossing in the middle with a camel fence along the road that guides the camels to it; the camel gate has an IR sensor post at each edge of the crossing.",
+  "On each approach: warning signs 300 m, 200 m and 100 m before the crossing (evenly spaced, not to scale), then the camel-crossing sign; a yellow caution lamp stands at the crossing.",
   "One HC-SR04 car sensor beside each approach at the 400 m point, before the 300 m sign, pinging across the lane; a small ramp gives repeatable car runs for testing.",
   "Electronics box under the board; sensor wires run under the base. A small solar panel stands at the edge of the model, the battery and the power modules sit in the box.",
 ].forEach(x => children.push(bullet(x)));
@@ -364,7 +348,7 @@ children.push(h2("10.1 ESP32 firmware"));
 [
   ["Edge decision: ", "sensing, classification and the state machine run on core 1 every 100 ms, independent of the network."],
   ["Telemetry: ", "a network task on core 0 sends JSON to the dashboard every second; the reply may carry one command."],
-  ["Settings in flash (NVS): ", "IR confirmation readings, PIR window, vehicle distance, hold time, approach time, signal timing, sensors fitted (IR A, IR B, PIR), device name and up to five WiFi networks survive a power cycle."],
+  ["Settings in flash (NVS): ", "IR confirmation readings, vehicle distance, hold time, approach time, sensors fitted (IR A, IR B), device name and up to five WiFi networks survive a power cycle."],
   ["Commands: ", "clear, change settings, change WiFi, manual alert, output test, reboot, factory reset."],
   ["Network recovery: ", "finds the dashboard PC automatically by UDP broadcast; starts its own setup WiFi (CamelGuard-Setup-XXXX) if no network works; can also be configured over the USB cable."],
   ["Power monitoring: ", "reads the two INA219 every 250 ms and derives the battery charge, the charging condition and a low-battery warning; works without them (USB-powered)."],
@@ -374,13 +358,13 @@ children.push(h2("10.2 PC dashboard"));
 children.push(...img("dashboard_live.png", 1440, 1720, "Figure 4 — Dashboard: live highway view and battery / solar monitoring (simulator)"));
 [
   ["Overview: ", "every camel crossing as a card, hazards first; CLEAR ALL and ALERT ALL; today’s camel crossings and vehicles."],
-  ["Dashboard: ", "animated live highway view (signals, 300/200/100 m warning signs, camel sign, the camel gate with IR A / PIR / IR B and the side the camel came from, the HC-SR04 car sensors at the 400 m points, cars from each side, the signs of each side, buzzer), six live tiles, four battery / solar tiles, eight 10-minute charts (four of them for the power), “why the system decided this” and recent vehicles per side."],
+  ["Dashboard: ", "animated live highway view (yellow lamps, 300/200/100 m warning signs, camel sign, the camel gate with IR A / IR B and the side the camel came from, the HC-SR04 car sensors at the 400 m points, cars from each side, buzzer), six live tiles, four battery / solar tiles, eight 10-minute charts (four of them for the power), “why the system decided this” and recent vehicles per side."],
   ["Log & History: ", "filtered event log, hazard history (duration, peak level, vehicles) and vehicle log, each exportable to CSV."],
-  ["Settings: ", "detection (IR confirmation, PIR window, approach time, hold time), live sensor view (IR, PIR, distances, IR-only triggers ignored), detection limit (lane width), gate sensors fitted, signal timing, WiFi, device, output test (including each LED one by one), wiring diagram, firmware compile/upload and ports."],
+  ["Settings: ", "detection (IR confirmation, approach time, hold time), live sensor view (IR, distances), detection limit (lane width), gate sensors fitted, WiFi, device, output test (including each LED one by one), wiring diagram, firmware compile/upload and ports."],
   ["Team: ", "authors and supervisor with photos."],
 ].forEach(([b, r]) => children.push(bullet(bold(b, r))));
 children.push(h2("10.3 Simulator"));
-children.push(p("A Python simulator reproduces the firmware exactly (same IR + PIR confirmation, direction, hold time, ultrasonic median filter, detection limit, approach window, per-side signs and command handling) and plays scenarios: auto tour (with an IR-only trigger that must be ignored), clear road, camel (from side A, later from side B), danger (camel plus cars from both sides) and three crossings at once. It also plays a 4-minute day / night cycle for the solar panel and the battery. It allows the dashboard to be developed and demonstrated before the hardware arrives."));
+children.push(p("A Python simulator reproduces the firmware exactly (same IR confirmation, direction, hold time, ultrasonic median filter, detection limit, approach window, yellow lamp and signs and command handling) and plays scenarios: auto tour, clear road, camel (from side A, later from side B), danger (camel plus cars from both sides) and three crossings at once. It also plays a 4-minute day / night cycle for the solar panel and the battery. It allows the dashboard to be developed and demonstrated before the hardware arrives."));
 
 // 11 budget
 children.push(h1("11. Materials and Budget"));
@@ -432,7 +416,7 @@ children.push(spacer());
 children.push(h2("13.1 Test equipment"));
 ["Ruler, stopwatch and a phone with slow-motion video (240 fps) for timing checks.",
   "Serial Monitor (115200 baud) and the dashboard event log for time stamps.",
-  "A block and a ruler (5, 10, 15, 20 cm) for the ultrasonic tests, a multimeter (voltage and current) for the INA219 tests, a lamp for the solar panel, a ramp for repeatable toy-car runs, a small screwdriver for the IR and PIR potentiometers and masking tape.",
+  "A block and a ruler (5, 10, 15, 20 cm) for the ultrasonic tests, a multimeter (voltage and current) for the INA219 tests, a lamp for the solar panel, a ramp for repeatable toy-car runs, a small screwdriver for the IR potentiometers and masking tape.",
 ].forEach(x => children.push(bullet(x)));
 children.push(h2("13.2 Test record (template)"));
 children.push(table(["Test ID", "Date", "Trials", "Passed", "Result / measured value", "Pass?", "Tester"],
@@ -444,7 +428,7 @@ children.push(h1("14. Safety Considerations"));
 [
   "Low voltage only: 5 V from a USB adapter, or from the battery through a boost converter; no mains or 12 V parts.",
   "The 18650 cell is only used with a charger module that has a protection circuit; it is never short-circuited, punctured or left charging unattended.",
-  "The IR sensors and both shift registers run from 3.3 V and the PIR output is 3.3 V; the 5 V ECHO signal of each HC-SR04 goes through a 1 kΩ / 2 kΩ divider, so every ESP32 input stays at its own 3.3 V logic level.",
+  "The IR sensors and the shift register run from 3.3 V; the 5 V ECHO signal of each HC-SR04 goes through a 1 kΩ / 2 kΩ divider, so every ESP32 input stays at its own 3.3 V logic level.",
   "All wires insulated, no exposed connections; the final circuit is soldered on perfboard inside an enclosure under the model.",
   "Hot-glue gun, soldering iron and cutting tools used only with teacher supervision and eye protection.",
   "The system is a demonstrator: it must not be installed on a real road without professional engineering and authority approval.",
@@ -456,10 +440,10 @@ children.push(table(["Risk", "Likelihood", "Mitigation"], risks, [3700, 1300, 46
 children.push(h1("15. Advanced Innovative Features"));
 [
   ["Advance warning at 300 / 200 / 100 m: ", "six signs flash in both directions while a camel is crossing, so drivers slow down early."],
-  ["Two-sensor camel confirmation with direction: ", "an IR trigger counts only when the PIR confirms a moving animal; the first IR shows from which side the camel comes, and false IR triggers are logged."],
-  ["UAE signal sequence: ", "every hazard stops the traffic with green → flashing green → amber → red, exactly as drivers know it."],
+  ["Two-sensor camel detection with direction: ", "an IR blocked for a few readings is a camel; the first IR shows from which side the camel comes."],
+  ["Simple, parallel outputs: ", "one always-flashing yellow lamp and one 74HC595 serve both sides of the road."],
   ["Vehicle-aware escalation per side: ", "a car detected 400 m before the crossing makes the signs on its own side flash fast and sounds the buzzer — only when a camel is really at the gate."],
-  ["Self-checking sensors: ", "sensor faults (no ultrasonic echo, vehicle sensor always occupied, IR blocked or PIR active for minutes) are shown on the dashboard."],
+  ["Self-checking sensors: ", "sensor faults (no ultrasonic echo, vehicle sensor always occupied, IR blocked for minutes) are shown on the dashboard."],
   ["Edge decision + IoT dashboard: ", "works without WiFi; live road view, history and remote settings when connected."],
   ["Several crossings: ", "one dashboard monitors many crossings and can alert all of them at once."],
   ["Solar powered with live monitoring: ", "two INA219 sensors show the battery charge, the charging condition and the solar power on the dashboard and warn when the battery is low."],
@@ -476,15 +460,15 @@ children.push(h1("16. Expected Outcomes"));
 children.push(h1("17. Limitations"));
 [
   "IR (2–30 cm) and HC-SR04 (≤ 4 m) ranges suit the model; a real highway needs radar, LiDAR or thermal cameras.",
-  "IR + PIR confirm a warm moving body at the gate but cannot tell a camel from another large animal or a person.",
+  "The IR sensors detect an object at the gate but cannot tell a camel from another large animal or a person.",
   "With one pass-by sensor per side at the 400 m point the system knows that a car is coming and from which side, but not its speed or exact position.",
   "A 2 W panel indoors or in shade charges slowly, and the battery charge is estimated from its voltage, so the runtime is approximate.",
-  "Soft, angled or very absorbent surfaces can give a weak echo (the sensor then reports “no echo”); IR and PIR sensors are affected by strong sunlight and heat, so the model is demonstrated under room lighting.",
+  "Soft, angled or very absorbent surfaces can give a weak echo (the sensor then reports “no echo”); IR sensors are affected by strong sunlight and heat, so the model is demonstrated under room lighting.",
 ].forEach(x => children.push(bullet(x)));
 
 children.push(h1("18. Future Improvements"));
 [
-  "AI camera recognition of camels (edge AI) combined with the IR + PIR gate.",
+  "AI camera recognition of camels (edge AI) combined with the IR gate.",
   "A second ultrasonic sensor on each approach to measure vehicle speed and log speeding during a hazard.",
   "Mobile warnings to nearby drivers and navigation apps; connection to smart road / V2X systems.",
   "Radar or thermal sensing for real road distances; a larger solar panel and battery for a real roadside unit.",
@@ -505,7 +489,6 @@ children.push(h1("20. References"));
   "Espressif Systems — ESP32 Series Datasheet and ESP32 Technical Reference Manual.",
   "HC-SR04 Ultrasonic Ranging Module — user guide / datasheet.",
   "FC-51 IR obstacle avoidance sensor module (LM393 comparator) — datasheet.",
-  "HC-SR501 PIR motion detector module (BISS0001) — datasheet.",
   "INA219 Zero-Drift, Bidirectional Current/Power Monitor With I2C Interface — datasheet (Texas Instruments).",
   "74HC595 8-bit serial-in / parallel-out shift register — datasheet (Texas Instruments / Nexperia).",
   "Arduino-ESP32 core documentation (WiFi, Preferences, HTTPClient, WebServer).",

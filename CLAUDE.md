@@ -35,8 +35,7 @@
    300/200/100 m warning signs (and the camel sign) are paralleled between the sides too → **one 74HC595** (not two). HC-SR04 car
    sensors and the local/cloud dashboard modes are unchanged. Consequences: signs flash 1 Hz with a camel, 4 Hz + buzzer in DANGER
    (a car at EITHER 400 m sensor; the sides can no longer differ). Not yet compiled for the ESP32 in this environment (no
-   arduino-cli) — compile + hardware-test before trusting it. `proposal/make_proposal.js` (the docx) still describes the old PIR /
-   2-chip / UAE-signal design and was NOT updated.
+   arduino-cli) — compile + hardware-test before trusting it. Proposal updated to **v3.4** (`make_proposal.js`, PNGs in `proposal/images/` re-rendered).
 
 ## What it is (firmware 2.4.0; the bullets below still describe 2.3.1 where history item 7 does not override them)
 - **Sensor pins/defaults live in `sensors_config.h`** (new, `#ifndef`-guarded). `config.h` holds the user's real WiFi password:
@@ -69,7 +68,7 @@
 | `dashboard/simulator.py` | Mirrors the firmware logic with a virtual clock (50 ms steps): gate IR/PIR confirmation, median filter, faults. Scenarios `auto` (has an `ironly` scene: IR A without PIR that must be ignored), `clear`, `camel` (from A, later from B), `danger`, `multi`. MACs `5A:17:00:00:01:0n`. |
 | `tools/` | `project_settings.py` (ini `camel_guard.ini`, firewall rule "Camel Guard Dashboard"), `firmware_tool.py` (LIBS empty, build dir `%TEMP%\camel_guard_build`), `setup_config.py`, `make_wiring.py` (→ `docs/wiring_diagram.svg`, 1640×1540; PIR box right of the board, wire from D4 hops over the I2C lanes), `make_diagrams.py` (→ `docs/block_diagram.svg`, `docs/state_machine.svg`). |
 | `docs/` | the three SVGs above, `UJI_HARDWARE.id.md`. |
-| `proposal/` | Original draft docx, older generated versions, current **`Camel_Crossing_Highway_Safety_Proposal_v3.3.docx`** (`node make_proposal.js <root> <file>` with docx-js; docx is installed in `..\Gut It Checked Out\node_modules` — run with `NODE_PATH` pointing there), `images/` (PNG renders of the SVGs via headless Edge; dashboard screenshot from `http://localhost:5100/?snapshot#realtime` while the simulator ran). |
+| `proposal/` | Original draft docx, older generated versions, current **`Camel_Crossing_Highway_Safety_Proposal_v3.4.docx`** (`node make_proposal.js <root> <file>` with docx-js; docx is installed in `..\Gut It Checked Out\node_modules` — run with `NODE_PATH` pointing there), `images/` (PNG renders of the SVGs via headless Edge; dashboard screenshot from `http://localhost:5100/?snapshot#realtime` while the simulator ran). |
 | `backup_pre_2.3.0/`, `backup_pre_2.3.1/` | copies of every file changed for 2.3.0 / 2.3.1 (no git). |
 
 ## Invariants — keep in sync

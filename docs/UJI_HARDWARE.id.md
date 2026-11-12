@@ -2,7 +2,7 @@
 
 Checklist untuk upload pertama dan pengujian di maket highway. Urutannya dari yang paling aman ke yang paling
 kompleks: kalau ada tahap gagal, **berhenti di situ** dan catat pesan Serial Monitor (115200 baud).
-Kode tes (T-xx) sama dengan Testing Plan di proposal v3.3.
+Kode tes (T-xx) sama dengan Testing Plan di proposal v3.4.
 
 ---
 
