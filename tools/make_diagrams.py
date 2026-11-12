@@ -69,7 +69,7 @@ def states():
     st = [(60, "WARMUP", "first 3 s after power-on", "", "#fef3c7", "#d97706", "yellow lamp flashing"),
           (400, "CLEAR", "no camel at the gate", "", "#dcfce7", "#16a34a", "lamp flashing, signs off"),
           (740, "WARNING", "camel confirmed (IR)", "(or manual alert)", "#ffedd5", "#ea580c", "300/200/100 m signs flash"),
-          (1080, "DANGER", "WARNING + car passed the", "400 m point (A or B)", "#fee2e2", "#dc2626", "signs fast + buzzer")]
+          (1080, "DANGER", "WARNING + car passed the", "400 m point (A or B)", "#fee2e2", "#dc2626", "signs flash + buzzer")]
     for x, n, a, b, f, c, o in st:
         s += f'<rect x="{x}" y="110" width="260" height="140" rx="16" fill="{f}" stroke="{c}" stroke-width="3"/>'
         s += f'<text x="{x + 130}" y="146" font-size="20" font-weight="800" text-anchor="middle" fill="{c}">{n}</text>'

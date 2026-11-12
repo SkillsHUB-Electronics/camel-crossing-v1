@@ -66,9 +66,9 @@ bawah lebar lajur) = mobil. Setiap mobil dihitung untuk sisinya (debounce 0,3 dt
 (*approach time* — waktu tempuh dari titik 400 m ke penyeberangan). Sama sekali tidak ada pulsa echo = fault sensor.
 
 **Apa yang dipicu oleh deteksi mobil (lampu di samping jalan):** rambu di samping jalan (300 / 200 / 100 m + rambu
-penyeberangan unta) hanya menyala selama ada unta di gerbang (atau saat alert manual) — kedua arah berkedip 1 Hz. Bila mobil
-melewati sensor 400 m salah satu sisi saat ada unta, **rambu berkedip cepat (4 Hz) dan buzzer berbunyi** selama
-approach time (kedua sisi diparalel, jadi tidak bisa berbeda). Mobil tanpa unta di gerbang hanya dihitung (lampu tidak menyala).
+penyeberangan unta) **berkedip 1 Hz** selama ada unta di gerbang (atau saat alert manual), ada mobil terdeteksi atau tidak. Mobil yang
+melewati sensor 400 m salah satu sisi saat ada unta hanya membuat **buzzer berbunyi** selama approach time (DANGER);
+rambu tidak berubah. Mobil tanpa unta di gerbang hanya dihitung.
 
 **Daya (panel surya + baterai):** dua modul **INA219** di bus I2C (D17 = SDA, D16 = SCL) mengukur panel surya
 (INA219 #1, alamat 0x40: tegangan dan arus) dan baterai 18650 (INA219 #2, alamat 0x41: tegangan dan arus, + = mengisi).
@@ -87,13 +87,13 @@ INA219 yang tadinya menjawab berhenti menjawab.
 | WARMUP | 3 dtk pertama setelah dinyalakan | berkedip | mati | mati |
 | CLEAR | tidak ada unta di gerbang | berkedip | mati | mati |
 | WARNING | unta terkonfirmasi di gerbang (IR), atau alert manual | berkedip | **rambu 300/200/100 m berkedip** (1 Hz) + rambu unta | mati |
-| DANGER | WARNING **dan** mobil melewati sensor 400 m dalam approach time | berkedip | rambu berkedip cepat (4 Hz) | bip cepat |
+| DANGER | WARNING **dan** mobil melewati sensor 400 m dalam approach time | berkedip | rambu berkedip 1 Hz (sama seperti WARNING) | bip cepat |
 
 **Lampu kuning peringatan:** satu lampu di gerbang unta yang **selalu berkedip (1 Hz)**, ada unta atau tidak, di semua state.
 Sisi A dan B diparalel pada satu output (Q0), jadi kedua lampu berkedip bersama. Tidak ada lagi urutan merah / kuning / hijau.
 
 **Rambu peringatan 300 / 200 / 100 m:** rambu sisi A dan B juga diparalel (satu output per jarak, Q1–Q3, ditambah rambu
-penyeberangan unta di Q4). Berkedip selama unta menyeberang; saat DANGER (mobil juga lewat sensor 400 m) berkedip cepat.
+penyeberangan unta di Q4). Berkedip 1 Hz selama unta menyeberang, ada mobil terdeteksi atau tidak.
 Kedua sensor mobil tetap menghitung mobil per sisi dan memicu DANGER, tetapi tidak lagi memilih sisi mana yang berkedip cepat.
 
 ## 3. Wiring (ESP32 DevKit V1)

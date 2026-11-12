@@ -33,8 +33,8 @@
    = an IR trigger alone (blocked `confirm` readings), direction = first IR. **No red/amber/green signals**: one **yellow lamp that
    always flashes (1 Hz)**, camel or not, in every state (WARMUP too); side A and B are wired **in parallel on one output**. The
    300/200/100 m warning signs (and the camel sign) are paralleled between the sides too → **one 74HC595** (not two). HC-SR04 car
-   sensors and the local/cloud dashboard modes are unchanged. Consequences: signs flash 1 Hz with a camel, 4 Hz + buzzer in DANGER
-   (a car at EITHER 400 m sensor; the sides can no longer differ). Not yet compiled for the ESP32 in this environment (no
+   sensors and the local/cloud dashboard modes are unchanged. Consequences: the 300/200/100 m signs + camel sign **flash 1 Hz** while a camel crosses (2.4.1, user request 2026-11-12: no car
+   dependence; they do NOT go fast any more); a car at EITHER 400 m sensor only raises DANGER + buzzer. Not yet compiled for the ESP32 in this environment (no
    arduino-cli) — compile + hardware-test before trusting it. Proposal updated to **v3.4** (`make_proposal.js`, PNGs in `proposal/images/` re-rendered).
 
 ## What it is (firmware 2.4.0; the bullets below still describe 2.3.1 where history item 7 does not override them)

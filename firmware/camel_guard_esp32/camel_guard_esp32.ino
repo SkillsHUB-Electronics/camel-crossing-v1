@@ -15,7 +15,7 @@
  * Outputs : ONE 74HC595 (the two sides are wired in parallel): Q0 = yellow caution lamp at the crossing
  *             (always flashing, camel or not), Q1..Q3 = warning signs 300 m / 200 m / 100 m (same output for both
  *             directions), Q4 = camel-crossing sign; buzzer at the crossing. The signs flash while a camel is
- *             crossing, fast (4 Hz) when a car is coming too.
+ *             crossing (1 Hz, whether a car is detected or not).
  * Power   : solar panel + Li-ion battery, measured by two INA219 on I2C: battery %, charge state, solar V / A,
  *             low-battery warning (modules that are not fitted are skipped)
  * Logic   : IR confirmation + direction + hold time + state machine (edge decision)
@@ -50,7 +50,7 @@
 #include "config.h"
 #include "sensors_config.h"
 
-#define FW_VERSION "2.4.0"
+#define FW_VERSION "2.4.1"
 #define SETTINGS_VERSION 5   // 5 = + carCm, pirSec, usePir; 4 and 3 are converted, older ones use the defaults (pirSec/usePir/flashSec/amberSec unused since 2.4.0, layout kept)
 
 enum RoadState : uint8_t { ST_WARMUP, ST_CLEAR, ST_CAUTION, ST_WARNING, ST_DANGER };   // CAUTION is not used any more
@@ -578,14 +578,10 @@ static void updateOutputs(uint32_t now) {
   else if (slow) bits |= 1u << Q_LAMP;
 
   // --- roadside signs (both directions in parallel). While a camel is crossing (or during a manual alert) the
-  //     300 / 200 / 100 m warnings and the camel-crossing sign flash (1 Hz); in DANGER (a car is coming too) 4 Hz.
-  //     The vehicle sensors per side still count cars and raise DANGER; they no longer pick a side's signs.
+  //     300 / 200 / 100 m warnings and the camel-crossing sign FLASH (1 Hz), with or without a car detected.
+  //     The vehicle sensors still count cars and raise DANGER (buzzer); they do not change the signs.
   const char *sc = "off", *sw = "off";
-  if (test == T_SIGNS) { if (slow) bits |= SIGNS_MASK; sc = sw = "flash"; }
-  else if (hazard) {
-    if (danger ? fast : slow) bits |= SIGNS_MASK;
-    sc = sw = danger ? "fast" : "flash";
-  }
+  if (test == T_SIGNS || hazard) { if (slow) bits |= SIGNS_MASK; sc = sw = "flash"; }
   const char *sA = sw, *sB = sw;
   // "Test Each LED": one output at a time, 1 s each — Q0..Q4. The dashboard names the output that should be
   // lit, so the wiring can be checked LED by LED.

@@ -971,7 +971,7 @@ pre.fwlog{margin-top:10px;max-height:300px;white-space:pre-wrap;word-break:break
           <h2><span class="ico red"><svg><use href="#i-camel"/></svg></span> Detection</h2>
           <form data-cfg>
             <div class="frow"><label title="A camel IR sensor must be blocked this many readings in a row (50 ms each) before it triggers">IR Confirmation</label><div class="unit"><input type="number" name="confirm" min="1" max="20" step="1"><span>× 50 ms</span></div></div>
-            <div class="frow"><label title="After a car passed the 400 m sensor of its side it counts as approaching this long (its travel time to the crossing): that side's signs flash fast, DANGER if a camel is at the gate">Vehicle Approach Time</label><div class="unit"><input type="number" name="approachSec" min="1" max="20" step="1"><span>s</span></div></div>
+            <div class="frow"><label title="After a car passed the 400 m sensor of its side it counts as approaching this long (its travel time to the crossing): the buzzer sounds, DANGER if a camel is at the gate">Vehicle Approach Time</label><div class="unit"><input type="number" name="approachSec" min="1" max="20" step="1"><span>s</span></div></div>
             <div class="frow"><label title="The warning stays on this long after the camel was last seen">Hold Time</label><div class="unit"><input type="number" name="holdSec" min="2" max="60" step="1"><span>s</span></div></div>
             <div class="right"><button class="btn primary sm" type="submit"><svg class="i" style="width:14px;height:14px"><use href="#i-save"/></svg> Save</button></div>
           </form>
@@ -1253,7 +1253,7 @@ const STATES = {
   CLEAR:   { t: "ROAD CLEAR",     s: "No Camel On The Crossing. Yellow Lamp Flashing, Warning Signs Off.", c: "var(--green)", cs: "var(--green-soft)" },
   CAUTION: { t: "CAUTION",        s: "Movement At The Crossing Fence — Camel Sign Lit, Yellow Lamp Flashing.", c: "var(--amber)", cs: "var(--amber-soft)" },
   WARNING: { t: "HAZARD ON THE ROAD", s: "Warning Signs At 300 / 200 / 100 m Flashing, Yellow Lamp Flashing.", c: "#d97706", cs: "var(--amber-soft)" },
-  DANGER:  { t: "DANGER",         s: "A Car Passed The 400 m Point — Warning Signs Flash Fast, Buzzer Sounds.", c: "var(--red)", cs: "var(--red-soft)" },
+  DANGER:  { t: "DANGER",         s: "A Car Passed The 400 m Point — Warning Signs Keep Flashing, Buzzer Sounds.", c: "var(--red)", cs: "var(--red-soft)" },
 };
 const LVL = { WARMUP: 0, CLEAR: 0, CAUTION: 1, WARNING: 2, DANGER: 3 };
 const HAZARD_STATES = ["WARNING", "DANGER"];
@@ -1512,7 +1512,7 @@ function updateRoad(L, on, cfg) {
     }
     for (const n of ["1", "2"]) {
       sa(id + n, "fill", wlit ? ROAD.amber : ROAD.lampOff);
-      sc(id + n, !wlit ? "" : wm === "fast" ? "blf" : n === "1" ? "bla" : "blb");
+      sc(id + n, !wlit || wm === "on" ? "" : wm === "fast" ? "blf" : n === "1" ? "bla" : "blb");
     }
   });
   // camel gate: IR A / IR B beams light up when blocked; the camel is drawn
@@ -1639,9 +1639,9 @@ function renderLogic(L, cfg, st) {
   const S = STATES[st] || STATES.CLEAR, res = $("logicRes");
   res.style.setProperty("--hc", S.c);
   res.style.setProperty("--hc-soft", S.cs);
-  const what = `warning signs at 300 / 200 / 100 m ${st === "DANGER" ? "flashing fast" : "flashing"}`;
+  const what = `warning signs at 300 / 200 / 100 m flashing`;
   res.innerHTML = {
-    DANGER: `<b>DANGER</b> — a hazard is on the road <i>and</i> a car passed the 400 m point of side ${[L.vehA && "A", L.vehB && "B"].filter(Boolean).join(" + ")}: the warning signs flash fast, buzzer at the crossing sounds.`,
+    DANGER: `<b>DANGER</b> — a hazard is on the road <i>and</i> a car passed the 400 m point of side ${[L.vehA && "A", L.vehB && "B"].filter(Boolean).join(" + ")}: the warning signs keep flashing, buzzer at the crossing sounds.`,
     WARNING: `<b>WARNING</b> — ${esc(hazardText(L.hazard).toLowerCase())} on the road: ${what}.`,
     CLEAR: `<b>CLEAR</b> — no camel at the gate: signs off, the yellow lamp keeps flashing.`,
     WARMUP: `<b>WARM-UP</b> — the device just started; detection is armed in a few seconds.`,
