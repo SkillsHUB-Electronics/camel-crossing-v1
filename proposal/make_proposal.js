@@ -323,8 +323,8 @@ children.push(table(["Component", "Function", "Key specification"], [
 children.push(h2("9.2 Pin assignment"));
 children.push(table(["ESP32 pin", "Connected to", "ESP32 pin", "Connected to"], [
   ["GPIO 13", "Camel IR A (side-A edge) — OUT", "GPIO 23", "74HC595 DS (pin 14)"],
-  ["GPIO 14", "Camel IR B (side-B edge) — OUT", "GPIO 18", "74HC595 SH_CP, pin 11"],
-  ["GPIO 4", "free (was PIR)", "GPIO 19", "74HC595 ST_CP, pin 12"],
+  ["GPIO 14", "Camel IR B (side-B edge) — OUT", "GPIO 19", "74HC595 SH_CP, pin 11"],
+  ["GPIO 4", "free (was PIR)", "GPIO 18", "74HC595 ST_CP, pin 12"],
   ["GPIO 32", "Car HC-SR04 A (400 m) — TRIG", "GPIO 25", "Buzzer (via NPN)"],
   ["GPIO 33", "Car HC-SR04 A (400 m) — ECHO (divider)", "GPIO 2", "Onboard status LED"],
   ["GPIO 26", "Car HC-SR04 B (400 m) — TRIG", "GPIO 21 / 22", "free"],

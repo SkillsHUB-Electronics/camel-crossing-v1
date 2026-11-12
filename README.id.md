@@ -108,7 +108,7 @@ Kedua sensor mobil tetap menghitung mobil per sisi dan memicu DANGER, tetapi tid
 | HC-SR04 kendaraan B TRIG / ECHO (sisi B, titik 400 m) | GPIO 26 / GPIO 27 | pembagi yang sama |
 | INA219 #1 (surya, 0x40) dan #2 (baterai, 0x41) SDA / SCL | GPIO 17 / GPIO 16 | VCC 3,3 V, kedua modul di dua kabel yang sama; pad A0 modul #2 dijumper. Lihat jalur daya di bagian bawah diagram wiring |
 | Buzzer (di penyeberangan) | GPIO 25 | lewat NPN (2N2222 + 1 kΩ), buzzer aktif 5 V |
-| 74HC595 DS / SH_CP / ST_CP | GPIO 23 / 18 / 19 | satu chip: VCC (16) & MR (10) → 3V3, OE (13) & GND (8) → GND, 100 nF |
+| 74HC595 DS / SH_CP / ST_CP | GPIO 23 / 19 / 18 | satu chip: VCC (16) & MR (10) → 3V3, OE (13) & GND (8) → GND, 100 nF |
 | Output 74HC595 (sisi A + B diparalel) | – | Q0 lampu kuning · Q1–Q3 rambu peringatan 300 / 200 / 100 m · Q4 rambu penyeberangan unta · Q5–Q7 cadangan (tiap LED dengan 220 Ω sendiri; dua LED per output) |
 | LED status | GPIO 2 | onboard: nyala = WiFi terhubung |
 
