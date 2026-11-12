@@ -6,8 +6,10 @@
  *                       the 300 m warning sign. Mounted BESIDE the lane, pinging ACROSS it: a pass-by presence
  *                       detector (a car passing that point), not a distance-to-the-crossing measurement.
  *   - CAMEL sensors   = 2x IR obstacle module (FC-51, digital OUT) at the camel gate, one at the side-A edge and
- *                       one at the side-B edge of the crossing, + 1x PIR (HC-SR501 / AM312) in the middle
- *                       (on the median), between IR A and IR B.
+ *                       one at the side-B edge of the crossing. Since 2.4.0 there is NO PIR: an IR trigger alone
+ *                       is a camel.
+ *   - OUTPUTS         = one 74HC595 (Q0 yellow lamp, Q1..Q3 warning signs 300/200/100 m, Q4 camel sign);
+ *                       side A and side B are wired in parallel.
  *
  * The older sensor names in config.h (PIN_US_A_TRIG, PIN_IR_CAR_A, CAMEL_CM, USE_CAMEL_A, ...) are no longer used:
  * these are the ones the firmware reads. config.h stays as it is (it holds the WiFi settings).
@@ -25,21 +27,13 @@
 #define PIN_CAR_B_ECHO   27        //                                              ECHO (through the divider)
 #endif
 
-// ---- camel gate: 2x IR obstacle module (VCC 3.3 V, OUT active LOW) + 1x PIR (OUT HIGH = motion, 3.3 V logic)
-//      Same pins as the old IR vehicle sensors (D13 / D14). D4 is not a strapping pin and has an internal pull-down,
-//      so an unplugged PIR reads "no motion".
+// ---- camel gate: 2x IR obstacle module (VCC 3.3 V, OUT active LOW). Same pins as the old IR vehicle sensors (D13 / D14).
 #ifndef PIN_CAMEL_IR_A
 #define PIN_CAMEL_IR_A   13        // camel IR sensor at the side-A edge of the crossing
 #define PIN_CAMEL_IR_B   14        // camel IR sensor at the side-B edge of the crossing
 #endif
-#ifndef PIN_PIR
-#define PIN_PIR          4         // PIR between IR A and IR B (HC-SR501: VCC 5 V, OUT is 3.3 V; AM312: VCC 3.3 V)
-#endif
 #ifndef CAMEL_IR_ACTIVE_LOW
 #define CAMEL_IR_ACTIVE_LOW true   // FC-51 modules pull OUT low when they see something
-#endif
-#ifndef PIR_ACTIVE_HIGH
-#define PIR_ACTIVE_HIGH  true
 #endif
 
 // ---- defaults of the settings the dashboard can change (stored in NVS)
@@ -52,10 +46,10 @@
                                    // fast, DANGER if a camel is at the gate) this long = its travel time to the crossing
 #endif
 #ifndef PIR_SEC
-#define PIR_SEC          3         // an IR trigger is a camel only if the PIR saw motion within this many seconds
+#define PIR_SEC          3         // unused since 2.4.0 (no PIR); only fills the legacy NVS field
 #endif
 #ifndef USE_PIR
-#define USE_PIR          true      // false = no PIR fitted: one IR alone confirms a camel (less accurate)
+#define USE_PIR          false     // unused since 2.4.0 (no PIR); only fills the legacy NVS field
 #endif
 #define LIMIT_CAR_MIN    3         // limits the dashboard may set (applyConfig clamps to these)
 #define LIMIT_CAR_MAX    150
@@ -77,5 +71,5 @@
 #endif
 
 #ifndef GATE_STUCK_MS
-#define GATE_STUCK_MS    120000UL  // camel IR blocked / PIR high / vehicle sensor "car" this long = fault (OBJ / PIR / CAR)
+#define GATE_STUCK_MS    120000UL  // camel IR blocked / vehicle sensor "car" this long = fault (OBJ / CAR)
 #endif

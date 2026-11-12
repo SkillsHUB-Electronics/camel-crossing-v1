@@ -72,7 +72,7 @@ def pinlabel(x, y, s, anchor="end"):
 e(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" font-family="{F}">')
 e(f'<rect width="{W}" height="{H}" fill="#ffffff"/>')
 text(40, 45, "Camel Crossing Highway Safety (Camel Guard) — Wiring Diagram", 24, weight="bold")
-text(40, 68, "Miniature simulator · firmware 2.3.1 · camel gate: 2× IR obstacle + PIR · cars: 2× HC-SR04 at the 400 m points · 2× 74HC595 (one per direction) · "
+text(40, 68, "Miniature simulator · firmware 2.4.0 · camel gate: 2× IR obstacle · cars: 2× HC-SR04 at the 400 m points · 1× 74HC595 (sides A + B in parallel) · "
      "buzzer · solar panel + battery measured by 2× INA219 (I2C)", 13, fill="#4b5563")
 
 # ------------------------------------------------------------------ ESP32 board
@@ -87,7 +87,7 @@ text(750, 870, "USB", 11, "middle", "bold", "#4b5563")
 LEFT = ["EN", "VP", "VN", "D34", "D35", "D32", "D33", "D25", "D26", "D27", "D14", "D12", "D13", "GND", "VIN"]
 RIGHT = ["D23", "D22", "TX0", "RX0", "D21", "D19", "D18", "D5", "D17", "D16", "D4", "D2", "D15", "GND", "3V3"]
 USED = {"D32", "D33", "D25", "D26", "D27", "D14", "D13", "D17", "D16", "GND", "VIN",
-        "D23", "D19", "D18", "D4", "D2", "3V3"}
+        "D23", "D19", "D18", "D2", "3V3"}
 PIN = {}
 for i, n in enumerate(LEFT):
     y = 300 + 36 * i
@@ -194,7 +194,7 @@ def ir_module(y0, title, sub, pin, lane, color):
     route_left(y0 + 58, lane, pin, color)
 
 
-# 5./6. camel gate IR sensors, one at each edge of the crossing (the PIR between them is on D4, right)
+# 5./6. camel gate IR sensors, one at each edge of the crossing
 ir_module(576, "IR obstacle — CAMEL IR B", "camel gate · side-B edge of the crossing", "D14", 470, "#be185d")
 ir_module(662, "IR obstacle — CAMEL IR A", "camel gate · side-A edge of the crossing", "D13", 450, "#db2777")
 text(LX0 + 12, 758, "HC-SR04 (cars): beside each lane at the 400 m point, pinging across.", 10, fill="#b91c1c", weight="bold")
@@ -220,12 +220,11 @@ for i, ((nt, lt), (nb, lb)) in enumerate(zip(TOP, BOT)):
     text(x, OY + 134, lb, 10, "middle", "bold", "#374151", True)
 text(LX0 + 12, OY + 151, "Pin 1 = dot / next to the notch. Blue numbers = pin numbers used in the diagram.", 9.5, fill="#6b7280")
 
-# ------------------------------------------------------------------ right column: 2× 74HC595
+# ------------------------------------------------------------------ right column: 1× 74HC595
 # Schematic symbol with every pin numbered (DIP-16 pin number next to each pin):
 # inputs / supply on the left, Q0 … Q7 in order and Q7' on the right.
 CX0, CX1 = 1200, 1330          # chip body
 STUB = 30                      # pin stub length
-LBUS_ST, LBUS_SH = 1112, 1098  # shared ST_CP / SH_CP buses to chip #2
 
 
 def pin_left(y, name, num):
@@ -250,7 +249,7 @@ def hop_h(x1, x2, y, xs, color):
 
 
 def shift_register(y0, title, side):
-    """One 74HC595 with its 7 LEDs. Returns the y of each left pin and of Q7'."""
+    """The 74HC595 with its 5 LEDs (A + B in parallel). Returns the y of each left pin and of Q7'."""
     ys = {"DS": y0 + 30, "ST_CP": y0 + 62, "SH_CP": y0 + 94, "MR": y0 + 142, "OE": y0 + 174,
           "VCC": y0 + 206, "GND": y0 + 238}
     rect(CX0, y0, CX1 - CX0, 312, "#1f2937", "#1f2937", 6)
@@ -263,14 +262,14 @@ def shift_register(y0, title, side):
         power_stub(CX0 - STUB, ys[name], lvl, 12, "left")
     text(CX0 + 8, y0 + 266, "100 nF: 16 – 8", 9, "start", fill="#9ca3af")
     # outputs Q0 (pin 15), Q1…Q7 (pins 1…7), Q7' (pin 9)
-    rows = [(f"Signal {side} — RED", "#ef4444"), (f"Signal {side} — AMBER", "#f59e0b"), (f"Signal {side} — GREEN", "#22c55e"),
-            (f"Warning 300 m — side {side}", "#fbbf24"), (f"Warning 200 m — side {side}", "#fbbf24"),
-            (f"Warning 100 m — side {side}", "#fbbf24"), (f"Camel crossing sign {side}", "#fbbf24")]
+    rows = [("Yellow lamp (always flashing)", "#f59e0b"), ("Warning 300 m (A + B parallel)", "#fbbf24"),
+            ("Warning 200 m (A + B parallel)", "#fbbf24"), ("Warning 100 m (A + B parallel)", "#fbbf24"),
+            ("Camel crossing sign (A + B parallel)", "#fbbf24")]
     for q in range(8):
         y = y0 + 30 + q * 30
         pin_right(y, f"Q{q}", 15 if q == 0 else q)
         x = CX1 + STUB
-        if q == 7:
+        if q >= len(rows):
             text(x + 8, y + 4, "spare (not connected)", 10, fill="#6b7280")
             continue
         label, col = rows[q]
@@ -279,51 +278,23 @@ def shift_register(y0, title, side):
         wire([(x + 32, y), (x + 42, y)], "#374151", 1.8)
         e(f'<circle cx="{x + 51}" cy="{y}" r="8" fill="{col}" stroke="#374151" stroke-width="1.5"/>')
         text(x + 66, y - 2, label, 10.5, weight="bold")
-        text(x + 66, y + 10, "220 Ω → LED → GND", 9, fill="#6b7280")
+        text(x + 66, y + 10, "220 Ω → LED(s) → GND", 9, fill="#6b7280")
     y7 = y0 + 30 + 8 * 30 + 12
     pin_right(y7, "Q7'", 9)
     return ys, y7
 
 
-ys1, q7a = shift_register(110, "74HC595 #1 — SIDE A (bits 0–7)", "A")
-ys2, q7b = shift_register(500, "74HC595 #2 — SIDE B (bits 8–15)", "B")
-text(CX1 + STUB + 8, q7b + 4, "not connected", 10, fill="#6b7280")
+ys1, q7a = shift_register(110, "74HC595 — SIDES A + B IN PARALLEL", "")
+text(CX1 + STUB + 8, q7a + 4, "not connected", 10, fill="#6b7280")
 
-# ESP32 → chip #1
+# ESP32 → the 74HC595
 route_right(ys1["DS"], 940, "D23", "#0284c7", CX0 - STUB)
 route_right(ys1["ST_CP"], 965, "D19", "#7c3aed", CX0 - STUB)
 PX, PY = PIN["RD18"]
 wire([(PX, PY), (990, PY), (990, ys1["SH_CP"])], "#c2410c")
-hop_h(990, CX0 - STUB, ys1["SH_CP"], [LBUS_ST], "#c2410c")
-# ST_CP and SH_CP shared with chip #2
-dot(LBUS_ST, ys1["ST_CP"], "#7c3aed")
-wire([(LBUS_ST, ys1["ST_CP"]), (LBUS_ST, ys2["ST_CP"]), (CX0 - STUB, ys2["ST_CP"])], "#7c3aed")
-dot(LBUS_SH, ys1["SH_CP"], "#c2410c")
-wire([(LBUS_SH, ys1["SH_CP"]), (LBUS_SH, ys2["SH_CP"]), (CX0 - STUB, ys2["SH_CP"])], "#c2410c")
-# chain: #1 Q7' (pin 9) → #2 DS (pin 14)
-CH_Y = (q7a + 500) / 2 + 8
-wire([(CX1 + STUB, q7a), (CX1 + STUB + 14, q7a), (CX1 + STUB + 14, CH_Y), (CX0 - STUB - 30, CH_Y),
-      (CX0 - STUB - 30, ys2["DS"]), (CX0 - STUB, ys2["DS"])], "#0e7490")
-text(CX1 + STUB + 20, CH_Y + 4, "chain: #1 Q7′ (pin 9) → #2 DS (pin 14)", 10, "start", "bold", "#0e7490")
-
-# 7. PIR in the camel gate, between IR A and IR B -> D4 (OUT is 3.3 V logic, no divider needed)
-PIR_C = "#4f46e5"
-PX0, PY0, PW, PH = 992, 606, 100, 118
-rect(PX0, PY0, PW, PH, "#eef2ff", PIR_C)
-text(PX0 + 8, PY0 + 18, "PIR HC-SR501", 11.5, weight="bold")
-text(PX0 + 8, PY0 + 32, "camel gate, middle", 9.5, fill="#4b5563")
-text(PX0 + 8, PY0 + 44, "between IR A / B", 9.5, fill="#4b5563")
-pinlabel(PX0 + 8, 660, "OUT", "start")
-pinlabel(PX0 + 22, PY0 + PH - 14, "VCC", "middle")
-pinlabel(PX0 + 72, PY0 + PH - 14, "GND", "middle")
-text(PX0 + 8, PY0 + 86, "time pot: min", 9, fill="#6b7280")
-_, pir_y = PIN["RD4"]
-hop_h(BX1, PX0, pir_y, [952, 968], PIR_C)
-for dx, lab in ((22, "5V"), (72, "GND")):
-    wire([(PX0 + dx, PY0 + PH), (PX0 + dx, PY0 + PH + 12)], POWER[lab], 2)
-    vtag_x = PX0 + dx
-    e(f'<rect x="{vtag_x - 14}" y="{PY0 + PH + 12}" width="28" height="16" rx="3" fill="{POWER[lab]}"/>')
-    text(vtag_x, PY0 + PH + 24, lab, 10, "middle", "bold", "#ffffff")
+hop_h(990, CX0 - STUB, ys1["SH_CP"], [], "#c2410c")
+text(CX0 - 150, 450, "Each output drives the side-A and the", 10.5, "start", "bold", "#374151")
+text(CX0 - 150, 464, "side-B lamp / sign together (parallel).", 10.5, "start", "bold", "#374151")
 
 # ------------------------------------------------------------------ power and notes
 rect(560, 910, 380, 150, "#fff7ed", "#ea580c", 8)
@@ -331,8 +302,8 @@ text(575, 932, "Power", 14, weight="bold")
 for i, line in enumerate([
     "• Supply: solar panel → TP4056 → 18650 → MT3608 (5.1 V) → VIN",
     "• A 5 V ≥ 2 A USB adapter / power bank works too (bench, backup)",
-    "• 5 V rail (VIN): buzzer, 2× HC-SR04, PIR",
-    "• 3V3 rail (ESP32 pin): 2× IR, 2× 74HC595, 2× INA219",
+    "• 5 V rail (VIN): buzzer, 2× HC-SR04",
+    "• 3V3 rail (ESP32 pin): 2× IR, 74HC595, 2× INA219",
     "• All GND connected together (ESP32, sensors, LEDs, power)",
 ]):
     text(575, 954 + i * 17, line, 11, fill="#374151")
@@ -340,18 +311,19 @@ for i, line in enumerate([
 rect(980, 838, 560, 340, "#f9fafb", "#9ca3af", 8)
 text(995, 858, "Notes", 14, weight="bold")
 notes = [
-    "1. Camel gate: IR A (side-A edge) · PIR (middle) · IR B (side-B edge).",
-    "   Camel = IR trigger + PIR motion within 3 s; first IR = its side.",
-    "2. IR: FC-51, VCC 3.3 V, OUT active LOW. PIR: VCC 5 V, OUT 3.3 V.",
+    "1. Camel gate: IR A (side-A edge) · IR B (side-B edge).",
+    "   Camel = an IR blocked ≥ 3 readings; first IR = its side. No PIR.",
+    "2. IR: FC-51, VCC 3.3 V, OUT active LOW.",
     "3. Cars: 2× HC-SR04 at the 400 m points, ≤ 15 cm across the lane = car.",
     "   ECHO is a 5 V signal: always through the 1 kΩ / 2 kΩ divider.",
-    "4. Side A: signs 300/200/100 m, signal A; car at A → A signs fast. Same B.",
+    "4. Yellow lamp: always flashing; side A + B lamps on one output (Q0).",
     "5. D0, D2, D5, D12, D15 are strapping pins: no sensor on them.",
-    "6. Free: D21 / D22, D34, D35, VP, VN.",
-    "7. Self-test at power-on: chip #1 (side A) Q0 → Q6, then chip #2 (B).",
-    "8. ≈ 6 mA per LED output; bigger signs: NPN or ULN2803 driver.",
-    "9. 74HC595 (both): VCC 16 & MR 10 → 3V3 · OE 13 & GND 8 → GND ·",
-    "    100 nF across pins 16–8. Q0 = pin 15, Q1…Q7 = pins 1…7.",
+    "6. Free: D4 (old PIR), D21 / D22, D34, D35, VP, VN.",
+    "7. Self-test at power-on: Q0 → Q4 in turn, then a short beep.",
+    "8. A + B in parallel = 2 LEDs per output, each with its own 220 Ω (≈ 12 mA);",
+    "    bigger signs: NPN or ULN2803 driver.",
+    "9. 74HC595: VCC 16 & MR 10 → 3V3 · OE 13 & GND 8 → GND ·",
+    "    100 nF across pins 16–8. Q0 = pin 15, Q1…Q4 = pins 1…4.",
     "10. INA219 #1 (0x40) on the solar input, #2 (0x41, A0 bridged) on the",
     "    battery: positive current = charging. Not fitted = USB still works.",
 ]
@@ -363,9 +335,8 @@ text(45, 978, "Wire colours", 14, weight="bold")
 legend = [("#dc2626", "5 V"), ("#ea580c", "3.3 V"), ("#111827", "GND"), ("#a21caf", "I2C SDA ← D17"), ("#ca8a04", "I2C SCL ← D16"),
           ("#65a30d", "Vehicle HC-SR04 A TRIG ← D32"), ("#4d7c0f", "Vehicle HC-SR04 A ECHO → D33"),
           ("#16a34a", "Vehicle HC-SR04 B TRIG ← D26"), ("#15803d", "Vehicle HC-SR04 B ECHO → D27"),
-          ("#db2777", "Camel IR A → D13"), ("#be185d", "Camel IR B → D14"), ("#4f46e5", "PIR OUT → D4"), ("#0f766e", "Buzzer ← D25"),
+          ("#db2777", "Camel IR A → D13"), ("#be185d", "Camel IR B → D14"), ("#0f766e", "Buzzer ← D25"),
           ("#0284c7", "595 DS (14) ← D23"), ("#7c3aed", "595 ST_CP (12) ← D19"), ("#c2410c", "595 SH_CP (11) ← D18"),
-          ("#0e7490", "595 #1 Q7′ (9) → #2 DS (14)"),
 ]
 for i, (c, l) in enumerate(legend):
     col, row = i % 2, i // 2

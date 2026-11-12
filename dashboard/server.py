@@ -12,7 +12,7 @@ HTTP endpoints:
   on a device carry {"device": <key>} (optional when only one device is known).
   GET  /api/devices     -> every known crossing with its latest telemetry
   POST /api/reset       -> CLEAR on one crossing (manual alert off, holds cleared), or {"all": true}
-  POST /api/alert       -> {"on": true|false} manual alert on every crossing (signs + amber signals)
+  POST /api/alert       -> {"on": true|false} manual alert on every crossing (warning signs flash)
   POST /api/test        -> {"device", "out": buzzer|relay|signals|signs|none, "sec"} output test on one device
   GET  /api/team        -> authors (max 4) and supervisors (max 2, min 1) with photo URLs
   POST /api/team/save   -> add / edit one person, optional photo as a data: URL (this PC only)
@@ -87,7 +87,7 @@ WIRING_SVG = os.path.join(BASE_DIR, "..", "docs", "wiring_diagram.svg")
 DB_PATH = os.path.join(DATA_DIR, "road_log.db")
 OFFLINE_AFTER_S = 10   # telemetry every 1 s; phone hotspots can pause a few seconds
 MAX_WIFI_NETWORKS = 5
-TEST_OUTPUTS = {"buzzer": "buzzer", "signals": "traffic signals", "signs": "warning signs",
+TEST_OUTPUTS = {"buzzer": "buzzer", "signals": "yellow lamp", "signs": "warning signs",
                 "leds": "each LED one by one"}
 TEST_MAX_S = 30        # same as TEST_MAX_SEC in config.h
 TEST_TTL_S = 15        # a test that cannot be delivered quickly is dropped, never run late
@@ -109,13 +109,10 @@ def now_str():
 CONFIG_LIMITS = {
     "carCm":       (3, 150, 0),    # a vehicle HC-SR04 reading at or below this (cm) = a vehicle
     "confirm":     (1, 20, 0),     # a camel IR must be blocked this many 50 ms readings in a row
-    "pirSec":      (1, 10, 0),     # an IR trigger is a camel only with PIR motion within this many seconds
     "holdSec":     (2, 60, 0),
     "approachSec": (1, 20, 0),
-    "flashSec":    (1, 10, 0),     # flashing green before amber (UAE sequence)
-    "amberSec":    (1, 10, 0),     # amber before red
 }
-CONFIG_FLAGS = ["buzzer", "useA", "useB", "usePir"]   # booleans (useA/B = camel IR fitted)
+CONFIG_FLAGS = ["buzzer", "useA", "useB"]   # booleans (useA/B = camel IR fitted)
 CONFIG_TEXT = {"name": 24}         # string fields -> max length
 
 
@@ -241,7 +238,6 @@ class Dev:
         self.open_hazard = None         # row id of the hazard episode that is still open
         self.peak = None                # {"kinds": set, "level", "vehicles", "max_speed", "overspeed"}
         self.last_veh = None            # vehCount seen last, to notice new vehicles
-        self.last_unconf = None         # unconfCount seen last (IR triggers the PIR did not confirm)
         self.last_faults = ""
         self.last_chg = None            # last charge state worth an event: charging / full / discharging
         self.last_low = False           # battery low reported
@@ -409,7 +405,6 @@ class Hub:
                 bad = any(k in why for k in ("crash", "watchdog", "brownout"))
                 self.log_event("warning" if bad else "info", "Device restarted", f"reason: {why}", name)
                 dev.last_veh = None
-                dev.last_unconf = None
             if isinstance(up, (int, float)):
                 dev.last_up = up
             prev_state = dev.state
@@ -431,7 +426,7 @@ class Hub:
             self._housekeeping(dev, t, name)
 
             dev.latest = t
-            dev.history.append({"ts": t["ts"], "camel": int(bool(t.get("camel"))), "pir": int(bool(t.get("pir"))),
+            dev.history.append({"ts": t["ts"], "camel": int(bool(t.get("camel"))),
                                 "veh": int(bool(t.get("veh"))), "lvl": LEVEL_NUM.get(state, 0), "state": state,
                                 **power_point(t)})
             reply = self.take_command(dev, t.get("ack"))
@@ -453,7 +448,7 @@ class Hub:
                     (name, dev.key, dev.location, now_str(), "+".join(kinds), state, 0, None, 0))
                 title = ("CAMEL CROSSING" if "camel" in kinds else "MOTION AT NIGHT" if "motion" in kinds
                          else "MANUAL ALERT")
-                came = f" · from side {t['camelDir']} (IR {t['camelDir']} + PIR)" if "camel" in kinds and t.get("camelDir") else ""
+                came = f" · from side {t['camelDir']} (IR {t['camelDir']})" if "camel" in kinds and t.get("camelDir") else ""
                 self.log_event("alarm" if state == "DANGER" or "camel" in kinds else "warning", title + where,
                                kind_text(kinds) + came + (coming if state == "DANGER" else ""), name)
             else:
@@ -472,8 +467,6 @@ class Hub:
                            "device restarted" if state == "WARMUP" else "camel gate clear", name)
         if prev == "WARMUP" and state in ("CLEAR", "CAUTION"):
             self.log_event("info", "Warm-up finished", "System armed", name)
-        if state == "CAUTION" and prev == "CLEAR":
-            self.log_event("info", "Motion beside the road", "PIR — early caution", name)
 
     def _vehicles(self, dev, t, state, name):
         cnt = t.get("vehCount")
@@ -499,14 +492,6 @@ class Hub:
         dev.last_veh = cnt
 
     def _housekeeping(self, dev, t, name):
-        # A camel IR fired but the PIR saw no motion within pirSec: not a camel, ignored by the device
-        unc = t.get("unconfCount")
-        if isinstance(unc, int):
-            if dev.last_unconf is not None and unc > dev.last_unconf:
-                win = (dev.cfg or {}).get("pirSec", "?")
-                self.log_event("info", "Camel sensor: IR without PIR — ignored",
-                               f"IR {t.get('unconfDir') or '?'} triggered, no PIR motion within {win} s (not confirmed)", name)
-            dev.last_unconf = unc
         # Battery and solar panel (INA219 modules; absent on a USB-only device)
         if t.get("batOk"):
             chg = t.get("chg")
