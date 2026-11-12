@@ -5,21 +5,20 @@
  * Not a device for a real road. There are no pedestrians on the highway.
  *
  * Sensors : camel gate at the crossing = 2x IR obstacle sensor (FC-51, digital, active LOW), one at the
- *             side-A edge and one at the side-B edge, + 1x PIR in the middle between them.
- *             A camel = an IR trigger CONFIRMED by PIR motion within pirSec; the side whose IR fired first
- *             is the side the camel comes from. IR without PIR motion = not a camel (counted as "unconfirmed").
+ *             side-A edge and one at the side-B edge. A camel = an IR trigger confirmed for `confirm` readings;
+ *             the side whose IR fired first is the side the camel comes from. (No PIR since 2.4.0.)
  *           2x HC-SR04 ultrasonic = vehicle sensors, one per approach at the "400 m" point (before the
  *             300 m warning sign), beside the lane and pinging ACROSS it: a pass-by presence detector,
  *             reading <= carCm (median of 3 pings) = a car passing that point. It does not measure how far
  *             the car is from the crossing.
  *           Pins and defaults of the sensors: sensors_config.h
- * Outputs : two 74HC595 in a chain, one per direction with the same layout:
- *             traffic signal (R/A/G), roadside warning signs 300 m / 200 m / 100 m before the crossing
- *             (they flash while a camel is crossing; a car detected at the 400 m point of a side makes
- *             THAT side's signs flash fast for approachSec), camel-crossing sign; buzzer at the crossing
+ * Outputs : ONE 74HC595 (the two sides are wired in parallel): Q0 = yellow caution lamp at the crossing
+ *             (always flashing, camel or not), Q1..Q3 = warning signs 300 m / 200 m / 100 m (same output for both
+ *             directions), Q4 = camel-crossing sign; buzzer at the crossing. The signs flash while a camel is
+ *             crossing, fast (4 Hz) when a car is coming too.
  * Power   : solar panel + Li-ion battery, measured by two INA219 on I2C: battery %, charge state, solar V / A,
  *             low-battery warning (modules that are not fitted are skipped)
- * Logic   : IR + PIR confirmation + direction + hold time + state machine (edge decision); UAE signal sequence
+ * Logic   : IR confirmation + direction + hold time + state machine (edge decision)
  * Network : sends JSON telemetry to the PC dashboard every second (HTTP POST);
  *           the response carries one command (reset / config / wifi / alert / test / ...).
  *
@@ -30,7 +29,7 @@
  * Settings live in the ESP32's own flash (NVS) and survive a power cycle:
  *   - up to MAX_NETWORKS WiFi networks, tried in order
  *   - the dashboard address (or empty: found by UDP broadcast)
- *   - device name, vehicle distance, IR confirmation, PIR window, hold time, signal timing
+ *   - device name, vehicle distance, IR confirmation, hold time
  * If no saved network answers, the device starts the access point AP_SSID and
  * serves a small setup page at http://192.168.4.1 — so changing networks never
  * requires a firmware re-upload.
@@ -51,28 +50,21 @@
 #include "config.h"
 #include "sensors_config.h"
 
-#define FW_VERSION "2.3.1"
-#define SETTINGS_VERSION 5   // 5 = + carCm, pirSec, usePir (IR + PIR camel gate); 4 and 3 are converted, older ones use the defaults
+#define FW_VERSION "2.4.0"
+#define SETTINGS_VERSION 5   // 5 = + carCm, pirSec, usePir; 4 and 3 are converted, older ones use the defaults (pirSec/usePir/flashSec/amberSec unused since 2.4.0, layout kept)
 
 enum RoadState : uint8_t { ST_WARMUP, ST_CLEAR, ST_CAUTION, ST_WARNING, ST_DANGER };   // CAUTION is not used any more
 static const char *STATE_NAMES[] = {"WARMUP", "CLEAR", "CAUTION", "WARNING", "DANGER"};
 
-// Outputs of the two chained 74HC595 (see config.h): one chip per direction, same layout on both.
-// Chip #1 = side A = bits 0..7, chip #2 = side B = bits 8..15; bit = side offset + Q number.
-#define SIDE_A 0
-#define SIDE_B 8
-#define Q_RED    0
-#define Q_AMBER  1
-#define Q_GREEN  2
-#define Q_W300   3          // advance warning sign 300 m before the crossing
-#define Q_W200   4
-#define Q_W100   5
-#define Q_CAMEL  6          // "camel crossing" sign at the crossing
-#define BOTH(q)  ((uint16_t)((1u << (SIDE_A + (q))) | (1u << (SIDE_B + (q)))))
-#define WARN_MASK (BOTH(Q_W300) | BOTH(Q_W200) | BOTH(Q_W100))
-// The roadside signs of ONE direction: 300 / 200 / 100 m warnings + the camel-crossing sign of that side
-#define SIDE_SIGNS(side) ((uint16_t)((1u << ((side) + Q_W300)) | (1u << ((side) + Q_W200)) | \
-                                     (1u << ((side) + Q_W100)) | (1u << ((side) + Q_CAMEL))))
+// Output of the single 74HC595 (see config.h): bit = Q number. Side A and side B are wired in parallel.
+#define Q_LAMP   0          // yellow caution lamp at the crossing (always flashing)
+#define Q_W300   1          // advance warning sign 300 m before the crossing
+#define Q_W200   2
+#define Q_W100   3
+#define Q_CAMEL  4          // "camel crossing" sign at the crossing
+#define LED_COUNT 5         // Q5..Q7 are spare
+#define WARN_MASK ((uint8_t)((1u << Q_W300) | (1u << Q_W200) | (1u << Q_W100)))
+#define SIGNS_MASK ((uint8_t)(WARN_MASK | (1u << Q_CAMEL)))
 
 // =====================================================================
 //  Settings stored in NVS
@@ -252,26 +244,24 @@ struct Snapshot {
   uint32_t hazardSec;
   bool camel;                    // camel confirmed at the gate (and held)
   char camelDir[2];              // side the current / last camel came from ("A" / "B" / "")
-  char camelPend[2];             // IR fired on this side, waiting for the PIR ("" = nothing pending)
-  bool irA, irB, pir;            // camel gate sensors right now
+  bool irA, irB;                 // camel gate sensors right now
   float distA, distB;            // vehicle HC-SR04 distance now (cm, 0 = unknown, FAR_CM = nothing in range)
   bool carA, carB;               // vehicle in front of the sensor right now
   bool vehA, vehB;               // vehicle approaching from side A / B
-  uint32_t vehCount, vehCountA, vehCountB, camelCount, unconfCount;
-  char lastDir[2], unconfDir[2];
+  uint32_t vehCount, vehCountA, vehCountB, camelCount;
+  char lastDir[2];
   bool pvOk, batOk, sun;         // INA219 on the panel / battery answering; sun above SUN_MIN_V
   float pvV, pvmA, batV, batmA;  // solar panel and battery measurements
   int8_t batPct;                 // battery charge in % (about), -1 = no battery sensor
   char chg[12];                  // none / charging / full / discharging / idle
   char faults[80];
-  char sig[12], signC[6], signW[6], signA[6], signB[6], buzz[6];
-  uint8_t sigLeft;
+  char sig[12], signC[6], signW[6], signA[6], signB[6], buzz[6];   // sig = yellow lamp, signA/B = signW (paralleled)
 };
 static Snapshot snap;
 static portMUX_TYPE snapMux = portMUX_INITIALIZER_UNLOCKED;
 static volatile bool resetRequested = false;
 static volatile bool wifiOnline = false;
-// "Alert all crossings" from the dashboard: signs flash and the signals stop the traffic at every
+// "Alert all crossings" from the dashboard: the signs flash at every
 // crossing, even though THIS crossing detected nothing (e.g. a herd reported further along the road).
 // Cleared by CLEAR on the dashboard.
 static volatile bool alertOn = false;
@@ -373,25 +363,18 @@ static bool approaching(const CarSensor &c, uint32_t now) {
 }
 
 // =====================================================================
-//  Camel gate: IR A at the side-A edge of the crossing, PIR in the middle, IR B at the side-B edge.
-//    1. An IR sensor blocked for `confirm` readings (50 ms each) TRIGGERS: that side is "pending".
-//    2. The PIR saw motion within pirSec before the trigger or sees it within pirSec after it
-//       -> camel CONFIRMED, coming from the side that triggered first; counted once.
-//       No PIR motion within pirSec -> not a camel (a hand, a toy car, a reflection): logged as
-//       "unconfirmed" and ignored. With usePir = false (no PIR fitted) the IR trigger alone confirms.
-//    3. The camel is held while an IR is blocked or the PIR sees motion, and holdSec after that.
+//  Camel gate: IR A at the side-A edge of the crossing, IR B at the side-B edge.
+//    1. An IR sensor blocked for `confirm` readings (50 ms each) = camel CONFIRMED, coming from the side
+//       that triggered first; counted once.
+//    2. The camel is held while an IR is blocked, and holdSec after that.
 //       The camel leaving through the other IR is the same camel (not counted again).
 // =====================================================================
 static GateIr gA = {PIN_CAMEL_IR_A, 'A'}, gB = {PIN_CAMEL_IR_B, 'B'};
 static GateIr *const gates[2] = {&gA, &gB};
-static uint32_t camelCount = 0, unconfCount = 0;
+static uint32_t camelCount = 0;
 static bool camelOn = false;            // confirmed camel at the gate (held)
 static char camelDir[2] = "";           // side it came from
-static char pendSide = 0;               // 'A' / 'B': IR fired, waiting for the PIR
-static uint32_t pendMs = 0, camelSeenMs = 0;
-static char unconfDir[2] = "";          // side of the last unconfirmed IR trigger
-static bool pirRaw = false;
-static uint32_t pirLastMs = 0, pirSinceMs = 0;
+static uint32_t camelSeenMs = 0;
 
 static void sampleGateIr(GateIr &g, bool enabled, uint32_t now) {
   if (!enabled) { g.raw = g.seen = false; g.blockedN = 0; g.blockedSinceMs = 0; return; }
@@ -408,45 +391,23 @@ static void sampleGateIr(GateIr &g, bool enabled, uint32_t now) {
   if (!g.seen) return;
   g.seenMs = now;
   if (was) return;
-  // a new trigger on this side
-  // While a camel is confirmed, a new trigger is the same camel walking on (or leaving): not counted again.
-  if (!camelOn && !pendSide) {
-    pendSide = g.tag;
-    pendMs = now;
-    Serial.printf("[DETECT] IR %c triggered - %s\n", g.tag, S.usePir ? "waiting for PIR motion" : "no PIR fitted");
+  // a new trigger on this side. While a camel is confirmed, a new trigger is the same camel
+  // walking on (or leaving): not counted again.
+  if (!camelOn) {
+    camelOn = true;
+    camelDir[0] = g.tag; camelDir[1] = '\0';
+    camelCount++;
+    camelSeenMs = now;
+    Serial.printf("[DETECT] Camel CONFIRMED (IR %c), coming from side %c - #%lu\n", g.tag, g.tag, (unsigned long)camelCount);
   }
 }
 
-// Every 50 ms: both IR sensors, the PIR, then the confirmation.
+// Every 50 ms: both IR sensors, then the hold logic.
 static void sampleGate(uint32_t now) {
   sampleGateIr(gA, S.useA, now);
   sampleGateIr(gB, S.useB, now);
-  pirRaw = S.usePir && digitalRead(PIN_PIR) == (PIR_ACTIVE_HIGH ? HIGH : LOW);
-  if (pirRaw) { pirLastMs = now; if (!pirSinceMs) pirSinceMs = now; }
-  else pirSinceMs = 0;
-
-  const uint32_t win = (uint32_t)S.pirSec * 1000UL;
-  if (pendSide && !camelOn) {
-    // PIR motion from `win` before the trigger up to now confirms it
-    bool pirOk = !S.usePir || (pirLastMs && (int32_t)(pirLastMs - pendMs) >= -(int32_t)win);
-    if (pirOk) {
-      camelOn = true;
-      camelDir[0] = pendSide; camelDir[1] = '\0';
-      camelCount++;
-      camelSeenMs = now;
-      Serial.printf("[DETECT] Camel CONFIRMED (IR %c + %s), coming from side %c - #%lu\n", pendSide,
-                    S.usePir ? "PIR" : "no PIR", pendSide, (unsigned long)camelCount);
-      pendSide = 0;
-    } else if (now - pendMs > win) {
-      unconfCount++;
-      unconfDir[0] = pendSide; unconfDir[1] = '\0';
-      Serial.printf("[DETECT] IR %c without PIR motion within %u s - not confirmed, ignored (#%lu)\n", pendSide,
-                    S.pirSec, (unsigned long)unconfCount);
-      pendSide = 0;
-    }
-  }
   if (camelOn) {
-    if (gA.seen || gB.seen || pirRaw) camelSeenMs = now;
+    if (gA.seen || gB.seen) camelSeenMs = now;
     else if (now - camelSeenMs > (uint32_t)S.holdSec * 1000UL) {
       camelOn = false;
       Serial.println("[DETECT] Camel gate clear");
@@ -570,18 +531,18 @@ static void evaluate(uint32_t now) {
 }
 
 // =====================================================================
-//  74HC595 chain: signals and signs. Only shifts when the pattern changes.
+//  74HC595: yellow lamp and signs. Only shifts when the pattern changes.
 // =====================================================================
 static int32_t ledsShown = -1;   // forces the first write
 
-// Two 74HC595 in a chain (chip 1 Q7' -> chip 2 DS): 16 outputs, bit i = Q<i>, Q8..Q15 on chip 2.
-// Slow edges (1 µs) keep long breadboard wires from double-clocking the chips.
-static void ledsWrite(uint16_t bits, bool force = false) {
+// One 74HC595: 8 outputs, bit i = Q<i>.
+// Slow edges (1 µs) keep long breadboard wires from double-clocking the chip.
+static void ledsWrite(uint8_t bits, bool force = false) {
   if (bits == ledsShown && !force) return;
   ledsShown = bits;
   if (!LEDS_ACTIVE_HIGH) bits = ~bits;
   digitalWrite(PIN_SR_LATCH, LOW);
-  for (int8_t b = 15; b >= 0; b--) {            // Q15 first: it travels through chip 1 into chip 2
+  for (int8_t b = 7; b >= 0; b--) {
     digitalWrite(PIN_SR_DATA, (bits >> b) & 1u);
     delayMicroseconds(1);
     digitalWrite(PIN_SR_CLOCK, HIGH);
@@ -594,49 +555,9 @@ static void ledsWrite(uint16_t bits, bool force = false) {
   digitalWrite(PIN_SR_LATCH, LOW);
 }
 
-// =====================================================================
-//  Traffic signals — UAE sequence, never skipped:
-//    GREEN (solid) -> GREEN FLASHING (flashSec, ~1 flash/s) -> AMBER (amberSec) -> RED
-//  Red is held while the hazard lasts (at least SIGNAL_MIN_RED_MS), then straight back to green.
-//  Once the sequence has started it always runs on to red, even if the hazard clears meanwhile:
-//  a driver who saw flashing green must never get green again without red in between.
-// =====================================================================
-enum SigPhase : uint8_t { P_GREEN, P_FLASH, P_AMBER, P_RED };
-static const char *PHASE_NAMES[] = {"green", "green-flash", "amber", "red"};
-static uint8_t sigPhase = P_GREEN;
-static uint32_t phaseStartMs = 0;
-
-static void setPhase(uint8_t p, uint32_t now) {
-  sigPhase = p;
-  phaseStartMs = now;
-  Serial.printf("[SIGNAL] %s\n", PHASE_NAMES[p]);
-}
-
-static void updateSignalPhase(uint32_t now, bool wantRed) {
-  uint32_t in = now - phaseStartMs;
-  switch (sigPhase) {
-    case P_GREEN: if (wantRed) setPhase(P_FLASH, now); break;
-    case P_FLASH: if (in >= (uint32_t)S.flashSec * 1000UL) setPhase(P_AMBER, now); break;
-    case P_AMBER: if (in >= (uint32_t)S.amberSec * 1000UL) setPhase(P_RED, now); break;
-    case P_RED:   if (!wantRed && in >= SIGNAL_MIN_RED_MS) setPhase(P_GREEN, now); break;
-  }
-}
-
-// Phase of the demo sequence for Settings -> Output Test (green 2 s, flashing green, amber, red 2 s, repeat).
-static uint8_t testPhase(uint32_t now, uint32_t &left) {
-  uint32_t f = S.flashSec * 1000UL, a = S.amberSec * 1000UL, cyc = 2000 + f + a + 2000;
-  uint32_t t = (now - testStartMs) % cyc;
-  if (t < 2000) { left = 0; return P_GREEN; }
-  if (t < 2000 + f) { left = 2000 + f - t; return P_FLASH; }
-  if (t < 2000 + f + a) { left = 2000 + f + a - t; return P_AMBER; }
-  left = 0;
-  return P_RED;
-}
-
 // What the outputs are doing, in words, for the dashboard's live road view
 static char outSig[12] = "off", outSignC[6] = "off", outSignW[6] = "off", outSignA[6] = "off", outSignB[6] = "off", outBuzz[6] = "off";
-static uint8_t outSigLeft = 0;     // seconds left in the flashing-green / amber phase
-static volatile int8_t outLed = -1;  // "leds" test: the one output that is on (bit 0-15)
+static volatile int8_t outLed = -1;  // "leds" test: the one output that is on (bit 0-4)
 
 static void updateOutputs(uint32_t now) {
   bool hazard = state == ST_WARNING || state == ST_DANGER;
@@ -649,47 +570,28 @@ static void updateOutputs(uint32_t now) {
   }
 
   bool slow = (now % 1000) < 500, fast = (now % 250) < 125;
-  uint16_t bits = 0;
-  const char *sig;
-  // --- traffic signals (both directions show the same aspect). A camel on the crossing stops the
-  //     traffic: the UAE sequence runs to red. DANGER (a vehicle coming) does NOT skip the sequence —
-  //     jumping to red in front of a moving car is more dangerous; the signs and buzzer react at once.
-  updateSignalPhase(now, hazard);
-  uint32_t left = 0;
-  uint8_t ph = sigPhase;
-  if (test == T_SIGNALS) ph = testPhase(now, left);
-  else if (ph == P_FLASH) left = S.flashSec * 1000UL - (now - phaseStartMs);
-  else if (ph == P_AMBER) left = S.amberSec * 1000UL - (now - phaseStartMs);
-  if (ph == P_GREEN && state == ST_WARMUP && test != T_SIGNALS) {
-    bits |= BOTH(Q_AMBER);                         // not armed yet: steady amber
-    sig = "amber";
-  } else {
-    if (ph == P_GREEN || (ph == P_FLASH && slow)) bits |= BOTH(Q_GREEN);
-    if (ph == P_AMBER) bits |= BOTH(Q_AMBER);
-    if (ph == P_RED) bits |= BOTH(Q_RED);
-    sig = PHASE_NAMES[ph];
-  }
-  outSigLeft = left ? (left + 999) / 1000 : 0;
+  uint8_t bits = 0;
+  // --- yellow caution lamp: always flashing (1 Hz), camel or not. It is one output: both directions are in parallel.
+  //     Output test "signals" holds it on steadily.
+  const char *sig = "flash";
+  if (test == T_SIGNALS) { bits |= 1u << Q_LAMP; sig = "on"; }
+  else if (slow) bits |= 1u << Q_LAMP;
 
-  // --- roadside signs, per direction. While a camel is crossing (or during a manual alert) the 300 / 200 /
-  //     100 m warnings and the camel-crossing sign of both directions flash (1 Hz). A car detected at the
-  //     400 m point of a side makes THAT side's signs flash fast (4 Hz) for approachSec — the side the car
-  //     drives along; the other side keeps flashing normally.
-  const char *sc = "off", *sw = "off", *sA = "off", *sB = "off";
-  if (test == T_SIGNS) { if (slow) bits |= BOTH(Q_CAMEL) | WARN_MASK; sc = sw = sA = sB = "flash"; }
+  // --- roadside signs (both directions in parallel). While a camel is crossing (or during a manual alert) the
+  //     300 / 200 / 100 m warnings and the camel-crossing sign flash (1 Hz); in DANGER (a car is coming too) 4 Hz.
+  //     The vehicle sensors per side still count cars and raise DANGER; they no longer pick a side's signs.
+  const char *sc = "off", *sw = "off";
+  if (test == T_SIGNS) { if (slow) bits |= SIGNS_MASK; sc = sw = "flash"; }
   else if (hazard) {
-    if (vehNowA ? fast : slow) bits |= SIDE_SIGNS(SIDE_A);
-    if (vehNowB ? fast : slow) bits |= SIDE_SIGNS(SIDE_B);
-    sA = vehNowA ? "fast" : "flash";
-    sB = vehNowB ? "fast" : "flash";
+    if (danger ? fast : slow) bits |= SIGNS_MASK;
     sc = sw = danger ? "fast" : "flash";
   }
-  // "Test Each LED": one output at a time, 1 s each — chip #1 Q0..Q6, then chip #2 Q0..Q6. The
-  // dashboard names the output that should be lit, so the wiring can be checked LED by LED.
+  const char *sA = sw, *sB = sw;
+  // "Test Each LED": one output at a time, 1 s each — Q0..Q4. The dashboard names the output that should be
+  // lit, so the wiring can be checked LED by LED.
   if (test == T_LEDS) {
-    uint8_t i = ((now - testStartMs) / 1000) % 14;
-    uint8_t b = i < 7 ? i : i + 1;
-    bits = (uint16_t)(1u << b);
+    uint8_t b = ((now - testStartMs) / 1000) % LED_COUNT;
+    bits = (uint8_t)(1u << b);
     outLed = (int8_t)b;
     sig = "off";
     sc = sw = sA = sB = "off";
@@ -728,7 +630,6 @@ static void doReset(const char *src) {
   bool was = alertOn;
   alertOn = false;
   camelOn = false;                   // re-detect from scratch: a camel still there comes back at once
-  pendSide = 0;
   gA.blockedN = gB.blockedN = 0;
   gA.seen = gB.seen = false;
   uA.lastHitMs = uB.lastHitMs = 0;
@@ -744,11 +645,9 @@ static void updateSnapshot(uint32_t now) {
     if (c->deadN >= US_FAULT_READINGS) { snprintf(f, sizeof(f), "US-%c ", c->tag); strlcat(faults, f, sizeof(faults)); }
     if (c->carSinceMs && now - c->carSinceMs > GATE_STUCK_MS) { snprintf(f, sizeof(f), "CAR-%c ", c->tag); strlcat(faults, f, sizeof(faults)); }
   }
-  // OBJ = a camel IR has been blocked for minutes (something left in the gate, or the module needs adjusting),
-  // PIR = the PIR has reported motion for minutes (time pot too high, or it is wired the wrong way).
+  // OBJ = a camel IR has been blocked for minutes (something left in the gate, or the module needs adjusting).
   for (GateIr *g : gates)
     if (g->blockedSinceMs && now - g->blockedSinceMs > GATE_STUCK_MS) { snprintf(f, sizeof(f), "OBJ-%c ", g->tag); strlcat(faults, f, sizeof(faults)); }
-  if (pirSinceMs && now - pirSinceMs > GATE_STUCK_MS) strlcat(faults, "PIR ", sizeof(faults));
   // Power: a module that answered once and now stays silent is a fault; a module that was never there is just "not fitted".
   if (batLow) strlcat(faults, "BAT-LOW ", sizeof(faults));
   if (inaSolar.everSeen && !inaSolar.present) strlcat(faults, "INA-S ", sizeof(faults));
@@ -760,16 +659,13 @@ static void updateSnapshot(uint32_t now) {
   snap.hazardSec = (state == ST_WARNING || state == ST_DANGER) ? (now - hazardStartMs) / 1000 : 0;
   snap.camel = camelOn;
   strlcpy(snap.camelDir, camelDir, sizeof(snap.camelDir));
-  snap.camelPend[0] = pendSide; snap.camelPend[1] = '\0';
-  snap.irA = gA.raw; snap.irB = gB.raw; snap.pir = pirRaw;
+  snap.irA = gA.raw; snap.irB = gB.raw;
   snap.distA = uA.dist; snap.distB = uB.dist;
   snap.carA = uA.car; snap.carB = uB.car;
   snap.vehA = vehNowA; snap.vehB = vehNowB;
   snap.vehCount = vehCount; snap.vehCountA = uA.count; snap.vehCountB = uB.count;
   snap.camelCount = camelCount;
-  snap.unconfCount = unconfCount;
   strlcpy(snap.lastDir, lastDir, sizeof(snap.lastDir));
-  strlcpy(snap.unconfDir, unconfDir, sizeof(snap.unconfDir));
   snap.pvOk = inaSolar.present && inaSolar.valid;
   snap.batOk = inaBat.present && inaBat.valid;
   snap.sun = sunNow;
@@ -778,7 +674,6 @@ static void updateSnapshot(uint32_t now) {
   strlcpy(snap.chg, chgState, sizeof(snap.chg));
   strlcpy(snap.faults, faults, sizeof(snap.faults));
   strlcpy(snap.sig, outSig, sizeof(snap.sig));
-  snap.sigLeft = outSigLeft;
   strlcpy(snap.signC, outSignC, sizeof(snap.signC));
   strlcpy(snap.signW, outSignW, sizeof(snap.signW));
   strlcpy(snap.signA, outSignA, sizeof(snap.signA));
@@ -1063,20 +958,15 @@ static bool discoverServer() {
 static void applyConfig(const String &r) {
   if (jsonHas(r, "name")) { jsonStr(r, "name", S.name, sizeof(S.name)); sanitizeName(S.name); }
   if (jsonHas(r, "carCm")) S.carCm = (uint8_t)clampf(jsonNum(r, "carCm", S.carCm), LIMIT_CAR_MIN, LIMIT_CAR_MAX);
-  if (jsonHas(r, "pirSec")) S.pirSec = (uint8_t)clampf(jsonNum(r, "pirSec", S.pirSec), LIMIT_PIR_MIN, LIMIT_PIR_MAX);
   if (jsonHas(r, "confirm")) S.confirm = (uint8_t)clampf(jsonNum(r, "confirm", S.confirm), 1, 20);
   if (jsonHas(r, "holdSec")) S.holdSec = (uint16_t)clampf(jsonNum(r, "holdSec", S.holdSec), LIMIT_HOLD_MIN, LIMIT_HOLD_MAX);
   if (jsonHas(r, "approachSec")) S.approachSec = (uint8_t)clampf(jsonNum(r, "approachSec", S.approachSec), 1, 20);
-  if (jsonHas(r, "flashSec")) S.flashSec = (uint8_t)clampf(jsonNum(r, "flashSec", S.flashSec), 1, 10);
-  if (jsonHas(r, "amberSec")) S.amberSec = (uint8_t)clampf(jsonNum(r, "amberSec", S.amberSec), 1, 10);
   if (jsonHas(r, "useA")) S.useA = jsonBool(r, "useA", S.useA);
   if (jsonHas(r, "useB")) S.useB = jsonBool(r, "useB", S.useB);
-  if (jsonHas(r, "usePir")) S.usePir = jsonBool(r, "usePir", S.usePir);
   if (jsonHas(r, "buzzer")) S.buzzer = jsonBool(r, "buzzer", S.buzzer);
   saveSettings();
-  Serial.printf("[CONFIG] Updated: vehicle<=%u cm IR confirm=%u x 50 ms PIR window=%u s hold=%u s approach=%u s flash=%u s "
-                "amber=%u s IR A=%d B=%d PIR=%d buzzer=%d\n", S.carCm, S.confirm, S.pirSec, S.holdSec, S.approachSec,
-                S.flashSec, S.amberSec, (int)S.useA, (int)S.useB, (int)S.usePir, (int)S.buzzer);
+  Serial.printf("[CONFIG] Updated: vehicle<=%u cm IR confirm=%u x 50 ms hold=%u s approach=%u s IR A=%d B=%d buzzer=%d\n",
+                S.carCm, S.confirm, S.holdSec, S.approachSec, (int)S.useA, (int)S.useB, (int)S.buzzer);
 }
 
 // Index of the first `target` at or after `from` that is not inside a JSON string, so that a
@@ -1305,30 +1195,30 @@ static bool postTelemetry() {
       "{\"id\":\"%s\",\"mac\":\"%s\",\"fw\":\"%s\",\"ip\":\"%s\",\"ssid\":\"%s\",\"host\":\"%s:%u\",\"rssi\":%d,\"up\":%lu,"
       "\"boot\":\"%s\",\"apName\":\"%s\",\"ack\":%ld,\"alert\":%s,\"test\":\"%s\",\"testSec\":%lu,\"led\":%d,"
       "\"state\":\"%s\",\"hazard\":\"%s\",\"hazardSec\":%lu,"
-      "\"camel\":%s,\"camelDir\":\"%s\",\"camelPend\":\"%s\",\"irA\":%s,\"irB\":%s,\"pir\":%s,"
+      "\"camel\":%s,\"camelDir\":\"%s\",\"irA\":%s,\"irB\":%s,"
       "\"distA\":%.1f,\"distB\":%.1f,\"carA\":%s,\"carB\":%s,\"vehA\":%s,\"vehB\":%s,\"veh\":%s,"
       "\"vehCount\":%lu,\"vehCountA\":%lu,\"vehCountB\":%lu,\"lastDir\":\"%s\",\"camelCount\":%lu,"
-      "\"unconfCount\":%lu,\"unconfDir\":\"%s\",\"vbat\":%.2f,"
+      "\"vbat\":%.2f,"
       "\"pvOk\":%s,\"batOk\":%s,\"sun\":%s,\"pvV\":%.2f,\"pvmA\":%.0f,\"batV\":%.2f,\"batmA\":%.0f,\"batPct\":%d,\"chg\":\"%s\","
-      "\"sig\":\"%s\",\"sigLeft\":%u,\"signC\":\"%s\",\"signW\":\"%s\",\"signA\":\"%s\",\"signB\":\"%s\",\"buzz\":\"%s\",\"faults\":\"%s\",",
+      "\"sig\":\"%s\",\"signC\":\"%s\",\"signW\":\"%s\",\"signA\":\"%s\",\"signB\":\"%s\",\"buzz\":\"%s\",\"faults\":\"%s\",",
       eName, macText, FW_VERSION, ip.c_str(), eSsid, eHost, S.port, WiFi.RSSI(), (unsigned long)(millis() / 1000),
       bootReason, apName, ackId, alertOn ? T : B, TEST_NAMES[tOut], (unsigned long)tLeft, tOut == T_LEDS ? (int)outLed : -1,
       STATE_NAMES[s.state], s.hazard, (unsigned long)s.hazardSec,
-      s.camel ? T : B, s.camelDir, s.camelPend, s.irA ? T : B, s.irB ? T : B, s.pir ? T : B,
+      s.camel ? T : B, s.camelDir, s.irA ? T : B, s.irB ? T : B,
       // distance: -1 = nothing in range / no echo (the faults tell the two apart)
       (s.distA > 0 && s.distA < FAR_CM) ? s.distA : -1.0f, (s.distB > 0 && s.distB < FAR_CM) ? s.distB : -1.0f,
       s.carA ? T : B, s.carB ? T : B,
       s.vehA ? T : B, s.vehB ? T : B, (s.vehA || s.vehB) ? T : B,
       (unsigned long)s.vehCount, (unsigned long)s.vehCountA, (unsigned long)s.vehCountB, s.lastDir,
-      (unsigned long)s.camelCount, (unsigned long)s.unconfCount, s.unconfDir, s.batOk ? s.batV : 0.0f,
+      (unsigned long)s.camelCount, s.batOk ? s.batV : 0.0f,
       s.pvOk ? T : B, s.batOk ? T : B, s.sun ? T : B, s.pvV, s.pvmA, s.batV, s.batmA, (int)s.batPct, s.chg,
-      s.sig, s.sigLeft, s.signC, s.signW, s.signA, s.signB, s.buzz, s.faults);
+      s.sig, s.signC, s.signW, s.signA, s.signB, s.buzz, s.faults);
 
   k += snprintf(body + k, sizeof(body) - k,
-      "\"cfg\":{\"name\":\"%s\",\"carCm\":%u,\"confirm\":%u,\"pirSec\":%u,\"holdSec\":%u,\"approachSec\":%u,\"flashSec\":%u,"
-      "\"amberSec\":%u,\"useA\":%s,\"useB\":%s,\"usePir\":%s,\"buzzer\":%s},\"nets\":[",
-      eName, S.carCm, S.confirm, S.pirSec, S.holdSec, S.approachSec, S.flashSec, S.amberSec, S.useA ? T : B,
-      S.useB ? T : B, S.usePir ? T : B, S.buzzer ? T : B);
+      "\"cfg\":{\"name\":\"%s\",\"carCm\":%u,\"confirm\":%u,\"holdSec\":%u,\"approachSec\":%u,"
+      "\"useA\":%s,\"useB\":%s,\"buzzer\":%s},\"nets\":[",
+      eName, S.carCm, S.confirm, S.holdSec, S.approachSec, S.useA ? T : B,
+      S.useB ? T : B, S.buzzer ? T : B);
   for (uint8_t i = 0; i < S.nNets && k < (int)sizeof(body) - 80; i++)
     k += snprintf(body + k, sizeof(body) - k, "%s\"%s\"", i ? "," : "", jsonEsc(S.ssid[i], eNet, sizeof(eNet)));
   snprintf(body + k, sizeof(body) - k, "]}");
@@ -1462,17 +1352,16 @@ void setup() {
     attachInterruptArg(digitalPinToInterrupt(c->echo), echoIsr, c, CHANGE);
   }
   // Camel IR modules drive their output themselves; the pull-up only keeps an unplugged input from
-  // floating (an unplugged IR then reads "clear"). The PIR's pull-down does the same: unplugged = "no motion".
+  // floating (an unplugged IR then reads "clear").
   pinMode(PIN_CAMEL_IR_A, CAMEL_IR_ACTIVE_LOW ? INPUT_PULLUP : INPUT_PULLDOWN);
   pinMode(PIN_CAMEL_IR_B, CAMEL_IR_ACTIVE_LOW ? INPUT_PULLUP : INPUT_PULLDOWN);
-  pinMode(PIN_PIR, PIR_ACTIVE_HIGH ? INPUT_PULLDOWN : INPUT_PULLUP);
 
   Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL, 100000);   // the two INA219 (solar panel, battery); skipped when not fitted
   Wire.setTimeOut(20);
 
-  // Short self-test: every LED in order — chip #1 (side A) Q0 -> Q6, then chip #2 (side B) Q0 -> Q6
-  // (red, amber, green, 300 m, 200 m, 100 m, camel sign) shows the wiring is right, then a short beep.
-  for (uint8_t i = 0; i < 16; i++) { if ((i & 7) == 7) continue; ledsWrite(1u << i); delay(100); }
+  // Short self-test: every LED in order, Q0 -> Q4 (yellow lamp, 300 m, 200 m, 100 m, camel sign)
+  // shows the wiring is right, then a short beep.
+  for (uint8_t i = 0; i < LED_COUNT; i++) { ledsWrite(1u << i); delay(100); }
   ledsWrite(0);
   if (S.buzzer) { writeOut(PIN_BUZZER, true, BUZZER_ACTIVE_HIGH); delay(80); writeOut(PIN_BUZZER, false, BUZZER_ACTIVE_HIGH); }
 
@@ -1491,12 +1380,10 @@ void setup() {
   Serial.printf("Dashboard: %s\n", netUrl[0] ? netUrl : "(auto-discover by UDP broadcast)");
   Serial.printf("If nothing connects, join WiFi \"%s\" (password \"%s\") and open http://192.168.4.1\n", apName, AP_PASS);
   Serial.println("Or connect over USB: dashboard Settings -> Network -> Configure over USB (type @info here to test)");
-  Serial.printf("Camel gate: IR A %s (D%u), IR B %s (D%u), PIR %s (D%u) · IR confirm %u x 50 ms · PIR window %u s · hold %u s\n",
-                S.useA ? "on" : "off", PIN_CAMEL_IR_A, S.useB ? "on" : "off", PIN_CAMEL_IR_B, S.usePir ? "on" : "off", PIN_PIR,
-                S.confirm, S.pirSec, S.holdSec);
+  Serial.printf("Camel gate: IR A %s (D%u), IR B %s (D%u) · IR confirm %u x 50 ms · hold %u s\n",
+                S.useA ? "on" : "off", PIN_CAMEL_IR_A, S.useB ? "on" : "off", PIN_CAMEL_IR_B, S.confirm, S.holdSec);
   Serial.printf("Vehicle sensors (HC-SR04, 400 m points): A D%u/D%u, B D%u/D%u · car when <= %u cm across the lane\n",
                 PIN_CAR_A_TRIG, PIN_CAR_A_ECHO, PIN_CAR_B_TRIG, PIN_CAR_B_ECHO, S.carCm);
-  Serial.println("PIR: give it 30-60 s after power-on to settle; set the HC-SR501 time pot to minimum (~3 s)");
 }
 
 void loop() {
@@ -1505,7 +1392,7 @@ void loop() {
   static bool turnB = false;
 
   // Each vehicle HC-SR04 every 50 ms, A and B taking turns 25 ms apart so they never hear each other;
-  // the camel gate (2 IR + PIR) every 50 ms.
+  // the camel gate (2 IR) every 50 ms.
   if (now - lastSample >= 25) {
     lastSample = now;
     sampleCar(turnB ? uB : uA, now);
@@ -1526,8 +1413,8 @@ void loop() {
   }
   if (now - lastLog >= 1000) {
     lastLog = now;
-    Serial.printf("%-7s camel=%d from %s | IR A=%d B=%d PIR=%d | car A %.1f cm B %.1f cm | vehicle A=%d B=%d total=%lu | signals %s %s\n",
-                  STATE_NAMES[state], (int)camelOn, camelDir[0] ? camelDir : "-", (int)gA.raw, (int)gB.raw, (int)pirRaw,
+    Serial.printf("%-7s camel=%d from %s | IR A=%d B=%d | car A %.1f cm B %.1f cm | vehicle A=%d B=%d total=%lu | lamp %s %s\n",
+                  STATE_NAMES[state], (int)camelOn, camelDir[0] ? camelDir : "-", (int)gA.raw, (int)gB.raw,
                   uA.dist < FAR_CM ? uA.dist : -1.0f, uB.dist < FAR_CM ? uB.dist : -1.0f,
                   (int)vehNowA, (int)vehNowB, (unsigned long)vehCount, outSig, hazardText);
   }

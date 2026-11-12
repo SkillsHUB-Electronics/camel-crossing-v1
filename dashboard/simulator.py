@@ -1,8 +1,8 @@
 """
 ESP32 simulator — test the dashboard without hardware.
-Detection logic (camel gate: IR A / IR B + PIR confirmation within pirSec, direction from the first IR, hold
+Detection logic (camel gate: IR A / IR B alone confirms (no PIR), direction from the first IR, hold
 time; vehicle HC-SR04 at the 400 m point of each approach, pinging across the lane: median of 3, <= carCm = a car
-passing; that side's signs flash fast for approachSec), state machine, UAE signal sequence, outputs, settings
+passing; that side's signs flash fast for approachSec), state machine, outputs (one yellow lamp always flashing, signs paralleled), settings
 and the command channel are identical to the firmware (2.3.1), so every dashboard page can be tested.
 A solar panel + battery with two INA219 is simulated too (a 4-minute day / night cycle, 30x faster battery).
 
@@ -25,16 +25,14 @@ import urllib.request
 
 # --- same defaults as firmware/config.h + sensors_config.h; the dashboard may change these at runtime ---
 DEFAULT_CFG = {
-    "name": "esp32-simulator", "carCm": 15, "confirm": 3, "pirSec": 3, "holdSec": 5, "approachSec": 8, "flashSec": 3,
-    "amberSec": 3, "useA": True, "useB": True, "usePir": True, "buzzer": True,
+    "name": "esp32-simulator", "carCm": 15, "confirm": 3, "holdSec": 5, "approachSec": 8,
+    "useA": True, "useB": True, "buzzer": True,
 }
 DEFAULT_NETS = ["Experts_Only"]   # what config.h would supply on a factory-fresh device
 # Limits, mirroring applyConfig() in the firmware
-LIMITS = {"carCm": (3, 150), "confirm": (1, 20), "pirSec": (1, 10), "holdSec": (2, 60), "approachSec": (1, 20),
-          "flashSec": (1, 10), "amberSec": (1, 10)}
-FLAGS = ("useA", "useB", "usePir", "buzzer")
+LIMITS = {"carCm": (3, 150), "confirm": (1, 20), "holdSec": (2, 60), "approachSec": (1, 20)}
+FLAGS = ("useA", "useB", "buzzer")
 SCENARIOS = ["auto", "clear", "camel", "danger", "multi"]
-MIN_RED_S = 2.0         # SIGNAL_MIN_RED_MS in config.h
 WARMUP_S = 3.0          # WARMUP_MS in config.h
 VEH_DEBOUNCE_S = 0.3    # VEH_DEBOUNCE_MS in sensors_config.h
 CAR_NEAR_CM = (4.0, 10.0)   # vehicle HC-SR04 beside the lane at the 400 m point: a passing toy car (empty lane = nothing in range)
@@ -84,14 +82,12 @@ def default_port():
 
 
 class World:
-    """The model highway: what the camel gate (IR A, PIR, IR B) and the two vehicle HC-SR04 see."""
+    """The model highway: what the camel gate (IR A, IR B) and the two vehicle HC-SR04 see."""
 
     PLANS = {
         # (situation, seconds). A camel scene lasts 14 s: the camel walks into the gate past IR A (0.5-2.5 s, the
-        # legs leave short gaps), the PIR in the middle sees it (1-6.5 s, plus the PIR's own ~2.5 s hold), and it
-        # leaves past IR B (5-7 s). "camelB" is the same from side B. "ironly" = something breaks IR A for half a
-        # second without any PIR motion (a hand, a toy car): it must NOT become a camel.
-        "auto": [("clear", 12), ("car", 8), ("camel", 14), ("clear", 8), ("ironly", 8), ("camelB+car", 14), ("clear", 10),
+        # legs leave short gaps) and leaves past IR B (5-7 s). "camelB" is the same from side B.
+        "auto": [("clear", 12), ("car", 8), ("camel", 14), ("clear", 8), ("clear", 8), ("camelB+car", 14), ("clear", 10),
                  ("camel+car", 14), ("clear", 8)],
         "clear": [("clear", 30), ("car", 6)],
         "camel": [("clear", 12), ("camel", 14), ("clear", 6), ("camelB", 14)],
@@ -105,7 +101,6 @@ class World:
         self.sit = self.plan[0][0]
         self.car = None            # (side, seconds left in front of its sensor) of a car passing a vehicle sensor
         self.next_car = 0.0
-        self.motion_t = -99.0      # last time the PIR saw motion (scene time)
 
     def step(self, dt):
         name, dur = self.plan[self.i]
@@ -114,7 +109,6 @@ class World:
             self.i = (self.i + 1) % len(self.plan)
             self.t_in = 0.0
             self.next_car = 0.0
-            self.motion_t = -99.0
             self.sit = self.plan[self.i][0]
             self.log(f"Scene: {self.sit}")
         s, k = self.sit, self.t_in
@@ -125,11 +119,6 @@ class World:
         if camel:
             ir[first] = 0.5 < k < 2.5 and not gap
             ir[second] = 5.0 < k < 7.0 and not gap
-            if 1.0 < k < 6.5:
-                self.motion_t = k
-        if s == "ironly" and 2.0 < k < 2.6:
-            ir["A"] = True
-        pir = k - self.motion_t < 2.5         # HC-SR501: output stays high a little after the last motion
         # cars: one now and then (about one every 12 s), more when the scene asks for one
         if self.car is None and (("car" in s and k >= self.next_car) or random.random() < 0.008):
             self.car = (random.choice("AB"), random.uniform(0.25, 0.5))
@@ -147,7 +136,7 @@ class World:
                 return None
             return random.uniform(*CAR_NEAR_CM) if car else math.inf   # empty lane: nothing in range
 
-        return {"irA": ir["A"], "irB": ir["B"], "pir": pir, "dA": echo(under["A"]), "dB": echo(under["B"])}
+        return {"irA": ir["A"], "irB": ir["B"], "dA": echo(under["A"]), "dB": echo(under["B"])}
 
 
 class CarSensor:
@@ -193,13 +182,10 @@ class Device:
         self.test, self.test_until, self.test_t0 = "none", 0.0, 0.0
         self.uA, self.uB = CarSensor("A"), CarSensor("B")
         self.gA, self.gB = GateIr("A"), GateIr("B")
-        self.camel_on, self.camel_dir, self.pend, self.pend_t, self.camel_seen = False, "", "", 0.0, 0.0
-        self.pir, self.pir_last, self.pir_since = False, 0.0, 0.0
-        self.camel_count = self.unconf_count = self.veh_count = 0
-        self.last_dir = self.unconf_dir = ""
+        self.camel_on, self.camel_dir, self.camel_seen = False, "", 0.0
+        self.camel_count = self.veh_count = 0
+        self.last_dir = ""
         self.state, self.hazard, self.hazard_start = "WARMUP", "", 0.0
-        self.phase, self.phase_t = "green", 0.0     # traffic signal phase (UAE sequence)
-        self.sig_left = 0
         self.pv_v = self.pv_ma = self.bat_v = self.bat_ma = 0.0
         self.bat_low = False
 
@@ -249,8 +235,6 @@ class Device:
         for g in (self.gA, self.gB):
             if g.blocked_since and t - g.blocked_since > STUCK_S:
                 out += f"OBJ-{g.tag} "
-        if self.pir_since and t - self.pir_since > STUCK_S:
-            out += "PIR "
         if self.has_power and self.bat_low:
             out += "BAT-LOW "
         return out
@@ -300,39 +284,20 @@ class Device:
         g.seen_t = t
         if was:
             return
-        if not self.camel_on and not self.pend:     # during a camel: the same camel walking on, not counted again
-            self.pend, self.pend_t = g.tag, t
-            self.log(f"IR {g.tag} triggered - " + ("waiting for PIR motion" if cfg["usePir"] else "no PIR fitted"))
+        if not self.camel_on:     # during a camel: the same camel walking on, not counted again
+            self.camel_on, self.camel_dir, self.camel_seen = True, g.tag, t
+            self.camel_count += 1
+            self.log(f"Camel CONFIRMED (IR {g.tag}), coming from side {g.tag} - #{self.camel_count}")
 
-    def sample_gate(self, ir_a, ir_b, pir):
-        """Every 50 ms: both IR sensors, the PIR, then the confirmation (sampleGate() in the firmware)."""
-        cfg, t = self.cfg, self.now()
+    def sample_gate(self, ir_a, ir_b):
+        """Every 50 ms: both IR sensors, then the hold logic (sampleGate() in the firmware)."""
+        t = self.now()
         self.sample_gate_ir(self.gA, ir_a)
         self.sample_gate_ir(self.gB, ir_b)
-        self.pir = cfg["usePir"] and pir
-        if self.pir:
-            self.pir_last = t
-            self.pir_since = self.pir_since or t
-        else:
-            self.pir_since = 0.0
-        win = cfg["pirSec"]
-        if self.pend and not self.camel_on:
-            # PIR motion from `win` before the trigger up to now confirms it
-            if not cfg["usePir"] or (self.pir_last and self.pir_last - self.pend_t >= -win):
-                self.camel_on, self.camel_dir, self.camel_seen = True, self.pend, t
-                self.camel_count += 1
-                self.log(f"Camel CONFIRMED (IR {self.pend} + {'PIR' if cfg['usePir'] else 'no PIR'}), "
-                         f"coming from side {self.pend} - #{self.camel_count}")
-                self.pend = ""
-            elif t - self.pend_t > win:
-                self.unconf_count += 1
-                self.unconf_dir = self.pend
-                self.log(f"IR {self.pend} without PIR motion within {win} s - not confirmed, ignored (#{self.unconf_count})")
-                self.pend = ""
         if self.camel_on:
-            if self.gA.seen or self.gB.seen or self.pir:
+            if self.gA.seen or self.gB.seen:
                 self.camel_seen = t
-            elif t - self.camel_seen > cfg["holdSec"]:
+            elif t - self.camel_seen > self.cfg["holdSec"]:
                 self.camel_on = False
                 self.log("Camel gate clear")
 
@@ -353,48 +318,24 @@ class Device:
             self.hazard_start = t
             self.log(f"!! {self.state}: {self.hazard}")
 
-    def signal_phase(self):
-        """updateSignalPhase(): green -> green-flash -> amber -> red, never skipped."""
-        want_red = self.state in ("WARNING", "DANGER")
-        t, into, cfg = self.now(), self.now() - self.phase_t, self.cfg
-        nxt = {"green": want_red, "green-flash": into >= cfg["flashSec"], "amber": into >= cfg["amberSec"],
-               "red": not want_red and into >= MIN_RED_S}[self.phase]
-        if nxt:
-            self.phase = {"green": "green-flash", "green-flash": "amber", "amber": "red", "red": "green"}[self.phase]
-            self.phase_t = t
-            self.log(f"Signal: {self.phase}")
-
     def outputs(self):
         """Output modes as reported by updateOutputs() in the firmware."""
         hazard, danger = self.state in ("WARNING", "DANGER"), self.state == "DANGER"
         if self.test != "none" and (hazard or time.time() >= self.test_until):
             self.log("Output test " + ("cancelled - a real hazard has priority" if hazard else "finished"))
             self.test = "none"
-        cfg, left = self.cfg, 0.0
-        if self.test == "signals":        # demo: green 2 s, flashing green, amber, red 2 s
-            f, a = cfg["flashSec"], cfg["amberSec"]
-            k = (time.time() - self.test_t0) % (4 + f + a)
-            sig = "green" if k < 2 else "green-flash" if k < 2 + f else "amber" if k < 2 + f + a else "red"
-            left = (2 + f - k) if sig == "green-flash" else (2 + f + a - k) if sig == "amber" else 0
-        else:
-            sig = self.phase
-            into = self.now() - self.phase_t
-            left = cfg["flashSec"] - into if sig == "green-flash" else cfg["amberSec"] - into if sig == "amber" else 0
-            if sig == "green" and self.state == "WARMUP":
-                sig = "amber"
-        self.sig_left = math.ceil(left) if left > 0 else 0
-        # camel-crossing sign, 300/200/100 m warning signs; per side: a car at that side's 400 m point = fast there
-        sc = sw = s_a = s_b = "off"
+        cfg = self.cfg
+        # yellow lamp: always flashing; the output test "signals" holds it on. Signs: both sides paralleled.
+        sig = "on" if self.test == "signals" else "flash"
+        sc = sw = "off"
         if self.test == "signs":
-            sc = sw = s_a = s_b = "flash"
+            sc = sw = "flash"
         elif hazard:
             sc = sw = "fast" if danger else "flash"
-            s_a = "fast" if self.veh_a else "flash"
-            s_b = "fast" if self.veh_b else "flash"
+        s_a = s_b = sw
         self.led = -1
-        if self.test == "leds":           # one output at a time, 1 s each: chip #1 Q0..Q6, chip #2 Q0..Q6
-            i = int(time.time() - self.test_t0) % 14
-            self.led = i if i < 7 else i + 1
+        if self.test == "leds":           # one output at a time, 1 s each: Q0..Q4
+            self.led = int(time.time() - self.test_t0) % 5
             sig, sc, sw, s_a, s_b = "off", "off", "off", "off", "off"
         bz = "fast" if danger else "off"
         if not cfg["buzzer"]:
@@ -412,7 +353,7 @@ class Device:
         if cmd == "reset":
             self.test = "none"
             self.alert = False
-            self.camel_on, self.pend = False, ""
+            self.camel_on = False
             self.gA.blocked_n = self.gB.blocked_n = 0
             self.gA.seen = self.gB.seen = False
             self.uA.last_hit = self.uB.last_hit = 0.0
@@ -472,20 +413,20 @@ class Device:
         def dist(c):   # -1 = nothing in range / no echo (the faults tell the two apart)
             return round(c.dist, 1) if 0 < c.dist < math.inf else -1
         return {
-            "id": self.cfg["name"], "mac": self.mac, "fw": "sim-2.3.1", "ip": "simulator",
+            "id": self.cfg["name"], "mac": self.mac, "fw": "sim-2.4.0", "ip": "simulator",
             "ssid": self.nets[0] if self.nets else "", "host": host, "rssi": random.randint(-62, -55),
             "up": int(t), "boot": "power on", "apName": "CamelGuard-Setup-" + self.mac.replace(":", "")[-4:],
             "ack": self.ack, "alert": self.alert, "test": self.test, "testSec": test_sec, "led": self.led,
             "state": self.state, "hazard": self.hazard,
             "hazardSec": int(t - self.hazard_start) if self.state in ("WARNING", "DANGER") else 0,
-            "camel": self.camel_on, "camelDir": self.camel_dir, "camelPend": self.pend,
-            "irA": self.gA.raw, "irB": self.gB.raw, "pir": self.pir,
+            "camel": self.camel_on, "camelDir": self.camel_dir, 
+            "irA": self.gA.raw, "irB": self.gB.raw,
             "distA": dist(self.uA), "distB": dist(self.uB), "carA": self.uA.car, "carB": self.uB.car,
             "vehA": self.veh_a, "vehB": self.veh_b,
             "veh": self.veh_a or self.veh_b, "vehCount": self.veh_count, "vehCountA": self.uA.count,
             "vehCountB": self.uB.count, "lastDir": self.last_dir, "camelCount": self.camel_count,
-            "unconfCount": self.unconf_count, "unconfDir": self.unconf_dir, **self.power_view(),
-            "sig": sig, "sigLeft": self.sig_left, "signC": sc, "signW": sw, "signA": s_a, "signB": s_b, "buzz": bz,
+            **self.power_view(),
+            "sig": sig, "signC": sc, "signW": sw, "signA": s_a, "signB": s_b, "buzz": bz,
             "faults": self.faults(), "cfg": self.cfg, "nets": self.nets,
         }
 
@@ -512,11 +453,10 @@ class SimCrossing:
             dev.t += 0.05
             dev.sample_car(dev.uA, w["dA"])
             dev.sample_car(dev.uB, w["dB"])
-            dev.sample_gate(w["irA"], w["irB"], w["pir"])
+            dev.sample_gate(w["irA"], w["irB"])
             dev.power_step(0.05)
             if k % 2:
                 dev.evaluate()
-                dev.signal_phase()
         body = dev.telemetry(self.host)
         sent_ack = body["ack"]
         try:
@@ -531,7 +471,7 @@ class SimCrossing:
         return (f"{self.label}{dev.state:7s}{' ALERT' if dev.alert else ''}"
                 f"{' TEST:' + dev.test if dev.test != 'none' else ''} {dev.hazard or '-':14s} "
                 f"camel={int(dev.camel_on)}{' from ' + dev.camel_dir if dev.camel_on else ''} IR A={int(dev.gA.raw)} "
-                f"B={int(dev.gB.raw)} PIR={int(dev.pir)} vehicles={dev.veh_count} signal={dev.phase}")
+                f"B={int(dev.gB.raw)} vehicles={dev.veh_count}")
 
 
 def main():

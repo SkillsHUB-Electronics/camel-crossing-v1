@@ -797,8 +797,7 @@ pre.fwlog{margin-top:10px;max-height:300px;white-space:pre-wrap;word-break:break
       </div>
 
       <div class="charts">
-        <div class="card p"><h2><span class="ico amber"><svg><use href="#i-camel"/></svg></span> Camel At The Gate (IR + PIR)</h2><div class="chart" id="cHA"></div></div>
-        <div class="card p"><h2><span class="ico purple"><svg><use href="#i-target"/></svg></span> PIR Motion</h2><div class="chart" id="cHB"></div></div>
+        <div class="card p"><h2><span class="ico amber"><svg><use href="#i-camel"/></svg></span> Camel At The Gate (IR)</h2><div class="chart" id="cHA"></div></div>
         <div class="card p"><h2><span class="ico blue"><svg><use href="#i-car"/></svg></span> Vehicle Approaching</h2><div class="chart" id="cLight"></div></div>
         <div class="card p"><h2><span class="ico red"><svg><use href="#i-alert"/></svg></span> Road State</h2><div class="chart" id="cLvl"></div></div>
       </div>
@@ -972,7 +971,6 @@ pre.fwlog{margin-top:10px;max-height:300px;white-space:pre-wrap;word-break:break
           <h2><span class="ico red"><svg><use href="#i-camel"/></svg></span> Detection</h2>
           <form data-cfg>
             <div class="frow"><label title="A camel IR sensor must be blocked this many readings in a row (50 ms each) before it triggers">IR Confirmation</label><div class="unit"><input type="number" name="confirm" min="1" max="20" step="1"><span>× 50 ms</span></div></div>
-            <div class="frow"><label title="An IR trigger is a camel only if the PIR between IR A and IR B sees motion within this time (before or after the trigger); otherwise it is ignored">PIR Confirmation Window</label><div class="unit"><input type="number" name="pirSec" min="1" max="10" step="1"><span>s</span></div></div>
             <div class="frow"><label title="After a car passed the 400 m sensor of its side it counts as approaching this long (its travel time to the crossing): that side's signs flash fast, DANGER if a camel is at the gate">Vehicle Approach Time</label><div class="unit"><input type="number" name="approachSec" min="1" max="20" step="1"><span>s</span></div></div>
             <div class="frow"><label title="The warning stays on this long after the camel was last seen">Hold Time</label><div class="unit"><input type="number" name="holdSec" min="2" max="60" step="1"><span>s</span></div></div>
             <div class="right"><button class="btn primary sm" type="submit"><svg class="i" style="width:14px;height:14px"><use href="#i-save"/></svg> Save</button></div>
@@ -998,12 +996,10 @@ pre.fwlog{margin-top:10px;max-height:300px;white-space:pre-wrap;word-break:break
         <div class="card p">
           <h2><span class="ico green"><svg><use href="#i-target"/></svg></span> Sensors Now</h2>
           <div class="kv"><span>Camel IR A (Side A Edge · D13)</span><b id="irNowA">–</b></div>
-          <div class="kv"><span>PIR (Middle · D4)</span><b id="pirNow">–</b></div>
           <div class="kv"><span>Camel IR B (Side B Edge · D14)</span><b id="irNowB">–</b></div>
-          <div class="kv"><span>IR Without PIR (Ignored)</span><b id="unconfNow">–</b></div>
           <div class="kv"><span>Vehicle HC-SR04 A (400 m Point · D32 / D33)</span><b id="usNowA">–</b></div>
           <div class="kv"><span>Vehicle HC-SR04 B (400 m Point · D26 / D27)</span><b id="usNowB">–</b></div>
-          <div class="kv"><span>Adjust The IR / PIR Modules</span><b>Potentiometers On Each Module</b></div>
+          <div class="kv"><span>Adjust The IR Modules</span><b>Potentiometers On Each Module</b></div>
         </div>
 
         <div class="card p">
@@ -1020,7 +1016,6 @@ pre.fwlog{margin-top:10px;max-height:300px;white-space:pre-wrap;word-break:break
           <form data-cfg>
             <div class="frow"><label>Camel IR A (Side A Edge)</label><select name="useA"><option value="1">Fitted</option><option value="0">Not Fitted</option></select></div>
             <div class="frow"><label>Camel IR B (Side B Edge)</label><select name="useB"><option value="1">Fitted</option><option value="0">Not Fitted</option></select></div>
-            <div class="frow"><label title="Without a PIR, one IR trigger alone counts as a camel (less accurate)">PIR (Between IR A And B)</label><select name="usePir"><option value="1">Fitted</option><option value="0">Not Fitted</option></select></div>
             <div class="frow"><label>Detection Runs On</label><div class="ro">ESP32 (Edge)</div></div>
             <div class="right"><button class="btn primary sm" type="submit"><svg class="i" style="width:14px;height:14px"><use href="#i-save"/></svg> Save</button></div>
           </form>
@@ -1138,8 +1133,8 @@ pre.fwlog{margin-top:10px;max-height:300px;white-space:pre-wrap;word-break:break
               <div><b>Test Buzzer</b><small class="tst">Ready</small></div>
             </button>
             <button class="ttile" data-test="signals" type="button">
-              <span class="ico green"><svg><use href="#i-signal"/></svg></span>
-              <div><b>Test Traffic Signals</b><small class="tst">Ready</small></div>
+              <span class="ico amber"><svg><use href="#i-signal"/></svg></span>
+              <div><b>Test Yellow Lamp</b><small class="tst">Ready</small></div>
             </button>
             <button class="ttile" data-test="signs" type="button">
               <span class="ico amber"><svg><use href="#i-camel"/></svg></span>
@@ -1158,16 +1153,12 @@ pre.fwlog{margin-top:10px;max-height:300px;white-space:pre-wrap;word-break:break
         <div class="card p">
           <h2><span class="ico slate"><svg><use href="#i-chip"/></svg></span> Output Hardware</h2>
           <form class="hwform" data-cfg>
-            <div class="frow"><label title="The buzzer at the crossing warns the camel herder that a vehicle is coming. Signals and signs cannot be muted">Buzzer</label>
+            <div class="frow"><label title="The buzzer at the crossing warns the camel herder that a vehicle is coming. The yellow lamp and signs cannot be muted">Buzzer</label>
               <select name="buzzer"><option value="1">Enabled</option><option value="0">Muted</option></select></div>
-            <div class="frow"><label title="UAE sequence: solid green, then flashing green for this long">Flashing Green</label>
-              <div class="unit"><input type="number" name="flashSec" min="1" max="10" step="1"><span>s</span></div></div>
-            <div class="frow"><label title="Amber after the flashing green, then red">Amber</label>
-              <div class="unit"><input type="number" name="amberSec" min="1" max="10" step="1"><span>s</span></div></div>
             <div class="hwpins">
               <div class="kv"><span>Buzzer</span><b>D25 · Via NPN</b></div>
-              <div class="kv"><span>2× 74HC595 (DS / SH_CP / ST_CP)</span><b>D23 / D18 / D19</b></div>
-              <div class="kv"><span>Per Chip (#1 = Side A, #2 = Side B)</span><b>Q0–Q2 Signal · Q3–Q5 300/200/100 m · Q6 Camel Sign</b></div>
+              <div class="kv"><span>74HC595 (DS / SH_CP / ST_CP)</span><b>D23 / D18 / D19</b></div>
+              <div class="kv"><span>Outputs (Side A + B In Parallel)</span><b>Q0 Yellow Lamp · Q1–Q3 300/200/100 m · Q4 Camel Sign</b></div>
             </div>
             <div class="right"><button class="btn primary sm" type="submit"><svg class="i" style="width:14px;height:14px"><use href="#i-save"/></svg> Save</button></div>
           </form>
@@ -1189,16 +1180,15 @@ pre.fwlog{margin-top:10px;max-height:300px;white-space:pre-wrap;word-break:break
             <div><b>Vehicle HC-SR04 B TRIG / ECHO</b><small>Side B · 400 m Point · Echo Divider</small><code>D26 / D27</code></div>
             <div><b>Camel IR A</b><small>Gate · Side A Edge</small><code>D13</code></div>
             <div><b>Camel IR B</b><small>Gate · Side B Edge</small><code>D14</code></div>
-            <div><b>PIR</b><small>Gate · Between IR A / B</small><code>D4</code></div>
             <div><b>Buzzer</b><small>Via NPN</small><code>D25</code></div>
             <div><b>INA219 SDA / SCL</b><small>Solar 0x40 · Battery 0x41</small><code>D17 / D16</code></div>
-            <div><b>74HC595 DS</b><small>Chip #1 Data</small><code>D23</code></div>
-            <div><b>74HC595 SH_CP</b><small>Clock · Both</small><code>D18</code></div>
-            <div><b>74HC595 ST_CP</b><small>Latch · Both</small><code>D19</code></div>
+            <div><b>74HC595 DS</b><small>Data</small><code>D23</code></div>
+            <div><b>74HC595 SH_CP</b><small>Clock</small><code>D18</code></div>
+            <div><b>74HC595 ST_CP</b><small>Latch</small><code>D19</code></div>
             <div><b>Status LED</b><small>Onboard</small><code>D2</code></div>
-            <div><b>Signal (Per Side)</b><small>Red · Amber · Green</small><code>Q0–Q2</code></div>
-            <div><b>Warning Signs</b><small>300 · 200 · 100 m</small><code>Q3–Q5</code></div>
-            <div><b>Camel Crossing Sign</b><small>#1 Side A · #2 Side B</small><code>Q6</code></div>
+            <div><b>Yellow Lamp</b><small>Always Flashing · A + B In Parallel</small><code>Q0</code></div>
+            <div><b>Warning Signs</b><small>300 · 200 · 100 m · A + B In Parallel</small><code>Q1–Q3</code></div>
+            <div><b>Camel Crossing Sign</b><small>A + B In Parallel</small><code>Q4</code></div>
           </div>
           <div class="wirebox" id="wireBox"><img id="wireImg" alt="ESP32 camel crossing highway safety wiring diagram" loading="lazy"></div>
         </div>
@@ -1259,11 +1249,11 @@ const $ = id => document.getElementById(id);
 const WINDOW_S = 600;
 const STATES = {
   OFFLINE: { t: "DEVICE OFFLINE", s: "No Data From The ESP32. Check Its Power And WiFi.", c: "var(--tx-3)", cs: "var(--bd-2)" },
-  WARMUP:  { t: "WARM-UP",        s: "Starting Up — Signals Steady Amber For A Few Seconds…", c: "var(--amber)", cs: "var(--amber-soft)" },
-  CLEAR:   { t: "ROAD CLEAR",     s: "No Camel On The Crossing. Signals Green, Warning Signs Off.", c: "var(--green)", cs: "var(--green-soft)" },
-  CAUTION: { t: "CAUTION",        s: "Movement At The Crossing Fence — Camel Sign Lit, Signals Stay Green.", c: "var(--amber)", cs: "var(--amber-soft)" },
-  WARNING: { t: "HAZARD ON THE ROAD", s: "Warning Signs At 300 / 200 / 100 m Flashing — Signals Run To Red.", c: "#d97706", cs: "var(--amber-soft)" },
-  DANGER:  { t: "DANGER",         s: "A Car Passed The 400 m Point — Warning Signs On Its Side Flash Fast, Buzzer Sounds.", c: "var(--red)", cs: "var(--red-soft)" },
+  WARMUP:  { t: "WARM-UP",        s: "Starting Up — The Yellow Lamp Is Already Flashing, Detection Starts In A Few Seconds…", c: "var(--amber)", cs: "var(--amber-soft)" },
+  CLEAR:   { t: "ROAD CLEAR",     s: "No Camel On The Crossing. Yellow Lamp Flashing, Warning Signs Off.", c: "var(--green)", cs: "var(--green-soft)" },
+  CAUTION: { t: "CAUTION",        s: "Movement At The Crossing Fence — Camel Sign Lit, Yellow Lamp Flashing.", c: "var(--amber)", cs: "var(--amber-soft)" },
+  WARNING: { t: "HAZARD ON THE ROAD", s: "Warning Signs At 300 / 200 / 100 m Flashing, Yellow Lamp Flashing.", c: "#d97706", cs: "var(--amber-soft)" },
+  DANGER:  { t: "DANGER",         s: "A Car Passed The 400 m Point — Warning Signs Flash Fast, Buzzer Sounds.", c: "var(--red)", cs: "var(--red-soft)" },
 };
 const LVL = { WARMUP: 0, CLEAR: 0, CAUTION: 1, WARNING: 2, DANGER: 3 };
 const HAZARD_STATES = ["WARNING", "DANGER"];
@@ -1304,11 +1294,10 @@ const FAULT_TEXT = { US: t => `Vehicle sensor ${t}: no echo at all — check the
   CAR: t => `Vehicle sensor ${t}: "vehicle" for minutes — something in front of it, or the vehicle distance is set too high`,
   OBJ: t => `Camel IR ${t}: blocked for minutes — remove the object or adjust the module` };
 const POWER_FAULT_TEXT = { "BAT-LOW": "Battery low — the device may switch off soon: charge it or connect USB",
-  "INA-S": "Solar sensor (INA219 0x40) stopped answering — check SDA / SCL / VCC", "INA-B": "Battery sensor (INA219 0x41) stopped answering — check SDA / SCL / VCC",
-  PIR: "PIR: motion for minutes — turn its time pot to minimum or check the wiring" };
+  "INA-S": "Solar sensor (INA219 0x40) stopped answering — check SDA / SCL / VCC", "INA-B": "Battery sensor (INA219 0x41) stopped answering — check SDA / SCL / VCC" };
 const faultText = f => f.trim().split(/\s+/).map(k => { if (POWER_FAULT_TEXT[k]) return POWER_FAULT_TEXT[k]; const [c, t] = k.split("-"); return FAULT_TEXT[c] ? FAULT_TEXT[c](t) : k; }).join(" · ");
-// The camel gate in words: confirmed camel (and its side), waiting for the PIR, or clear
-const camelTxt = L => !L ? "–" : L.camel ? `Camel · From Side ${L.camelDir || "?"}` : L.camelPend ? `IR ${L.camelPend} · Waiting For PIR…` : "Clear";
+// The camel gate in words: confirmed camel (and its side), or clear
+const camelTxt = L => !L ? "–" : L.camel ? `Camel · From Side ${L.camelDir || "?"}` : "Clear";
 function toast(title, msg, kind) {
   const el = document.createElement("div");
   el.className = "toast " + (kind || "");
@@ -1402,7 +1391,7 @@ setTimeout(() => {
    Built once, then only attributes and classes change, so the CSS blink animations keep
    running smoothly between the 1-second updates. Top view of the model highway: carriageway A
    (traffic from side A, left -> right) below the median, carriageway B (right -> left) above.
-   One camel crossing with a camel gate (IR A at the side-A edge, PIR on the median, IR B at the side-B
+   One camel crossing with a camel gate (IR A at the side-A edge, IR B at the side-B
    edge), an HC-SR04 vehicle sensor on each approach, and advance warning signs at 300 / 200 / 100 m
    before the crossing on both approaches (distances not to scale). */
 const ROAD = {
@@ -1410,11 +1399,10 @@ const ROAD = {
 };
 const WARN_IDS = ["wA300", "wA200", "wA100", "wB300", "wB200", "wB100"];
 function buildRoad() {
+  // yellow caution lamp at the crossing (one always-flashing lamp per side, both on the same output)
   const signal = (id, x, y, label, lx, ly, tx, ty, ta) => `
-    <g id="${id}"><rect x="${x - 13}" y="${y}" width="26" height="70" rx="7" fill="#1f2937" stroke="#0f172a"/>
-      <circle id="${id}r" cx="${x}" cy="${y + 13}" r="8" fill="${ROAD.lampOff}"/>
-      <circle id="${id}a" cx="${x}" cy="${y + 35}" r="8" fill="${ROAD.lampOff}"/>
-      <circle id="${id}g" cx="${x}" cy="${y + 57}" r="8" fill="${ROAD.lampOff}"/></g>
+    <g id="${id}"><rect x="${x - 13}" y="${y + 22}" width="26" height="26" rx="7" fill="#1f2937" stroke="#0f172a"/>
+      <circle id="${id}a" cx="${x}" cy="${y + 35}" r="8" fill="${ROAD.lampOff}"/></g>
     <text x="${lx}" y="${ly}" font-size="11" font-weight="600" fill="var(--tx-2)" text-anchor="middle">${label}</text>
     <text id="${id}t" x="${tx}" y="${ty}" font-size="12" font-weight="700" fill="var(--tx)" text-anchor="${ta}"></text>`;
   const sign = (id, x, y) => `
@@ -1450,17 +1438,14 @@ function buildRoad() {
     <text x="850" y="150" font-size="10" font-weight="700" fill="#cbd5e1" text-anchor="end">← SIDE B</text>
     <rect x="462" y="136" width="76" height="92" fill="url(#cgStripe)" opacity=".75"/>
     <text x="500" y="112" font-size="12" font-weight="800" fill="var(--tx)" text-anchor="middle">CAMEL CROSSING</text>
-    <!-- camel gate: IR B at the side-B edge (top), PIR on the median, IR A at the side-A edge (bottom) -->
+    <!-- camel gate: IR B at the side-B edge (top), IR A at the side-A edge (bottom) -->
     <line id="gbB" x1="466" y1="132" x2="534" y2="132" stroke="#f472b6" stroke-width="2.5" stroke-dasharray="4 4" opacity=".5"/>
     <line id="gbA" x1="466" y1="232" x2="534" y2="232" stroke="#f472b6" stroke-width="2.5" stroke-dasharray="4 4" opacity=".5"/>
     <rect id="irB" x="450" y="125" width="14" height="14" rx="3" fill="#111827" stroke="#cbd5e1" stroke-width="2"/>
     <rect id="irA" x="450" y="225" width="14" height="14" rx="3" fill="#111827" stroke="#cbd5e1" stroke-width="2"/>
-    <path id="pirF" d="M500 182 L466 166 A38 38 0 0 1 466 198 Z M500 182 L534 166 A38 38 0 0 0 534 198 Z" fill="#a78bfa" opacity="0"/>
-    <circle id="pirS" cx="500" cy="182" r="7" fill="#f8fafc" stroke="#7c3aed" stroke-width="2.5"/>
     ${figure("fig", 182)}
     <text x="445" y="136" font-size="10" font-weight="700" fill="var(--tx-2)" text-anchor="end">IR B</text>
     <text x="445" y="236" font-size="10" font-weight="700" fill="var(--tx-2)" text-anchor="end">IR A</text>
-    <text x="445" y="186" font-size="10" font-weight="700" fill="#cbd5e1" text-anchor="end">PIR</text>
     <text id="gBt" x="545" y="126" font-size="12" font-weight="700" fill="var(--tx)"></text>
     <text id="gAt" x="545" y="250" font-size="12" font-weight="700" fill="var(--tx)"></text>
     <!-- HC-SR04 vehicle sensors at the 400 m point of each approach, before the 300 m sign, beside the lane and
@@ -1477,15 +1462,15 @@ function buildRoad() {
       <rect x="892" y="148" width="14" height="18" rx="3" fill="#bfdbfe"/><path d="M878 157 h-18 m7 -6 l-7 6 7 6" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
     <text id="carT" x="96" y="185" font-size="9.5" font-weight="800" fill="#fde68a" text-anchor="middle" style="display:none">VEHICLE COMING</text>
     <text id="carTB" x="904" y="185" font-size="9.5" font-weight="800" fill="#fde68a" text-anchor="middle" style="display:none">VEHICLE COMING</text>
-    <!-- side A (below the road): warning signs 300 / 200 / 100 m, camel sign, signal A -->
+    <!-- side A (below the road): warning signs 300 / 200 / 100 m, camel sign, yellow lamp A -->
     ${warn("wA300", 125, 286, "300 m")}${warn("wA200", 205, 286, "200 m")}${warn("wA100", 285, 286, "100 m")}
     ${sign("gCA", 360, 286)}
-    ${signal("sA", 420, 252, "Signal A", 420, 336, 442, 300, "start")}
+    ${signal("sA", 420, 252, "Yellow Lamp A", 420, 336, 442, 300, "start")}
     <g id="buzz"><circle cx="600" cy="290" r="16" fill="var(--card)" stroke="var(--bd)" stroke-width="2"/>
       <use href="#i-sound" x="590" y="280" width="20" height="20" style="fill:none;stroke:var(--tx-3);stroke-width:2"/></g>
     <text x="600" y="322" font-size="10.5" font-weight="600" fill="var(--tx-2)" text-anchor="middle">BUZZER</text>
-    <!-- side B (above the road): signal B, camel sign, warning signs 100 / 200 / 300 m -->
-    ${signal("sB", 580, 20, "Signal B", 580, 102, 558, 60, "end")}
+    <!-- side B (above the road): yellow lamp B, camel sign, warning signs 100 / 200 / 300 m -->
+    ${signal("sB", 580, 20, "Yellow Lamp B", 580, 102, 558, 60, "end")}
     ${sign("gCB", 640, 62)}
     ${warn("wB100", 715, 62, "100 m")}${warn("wB200", 795, 62, "200 m")}${warn("wB300", 875, 62, "300 m")}
     <text x="992" y="336" font-size="9.5" fill="var(--tx-3)" text-anchor="end">distances not to scale</text>
@@ -1502,15 +1487,14 @@ function stx(id, text) { const el = $(id); if (el && el.textContent !== text) el
 function updateRoad(L, on, cfg) {
   sd("noData", !on || !L);
   const x = on && L ? L : {};
-  // traffic signals
+  // yellow caution lamp: always flashing (steady while it is being tested)
   const sig = x.sig || "off";
   for (const s of ["sA", "sB"]) {
-    const lamp = (k, color, lit, cls) => { sa(s + k, "fill", lit ? color : ROAD.lampOff); sc(s + k, lit ? cls : ""); };
-    lamp("r", ROAD.red, sig === "red", "");
-    lamp("a", ROAD.amber, sig === "amber", "");
-    lamp("g", ROAD.green, sig === "green" || sig === "green-flash", sig === "green-flash" ? "bl" : "");
+    const lit = sig === "flash" || sig === "on";
+    sa(s + "a", "fill", lit ? ROAD.amber : ROAD.lampOff);
+    sc(s + "a", sig === "flash" ? "bl" : "");
   }
-  // signs per side: a car at the 400 m point of a side makes that side's signs flash fast (signA / signB)
+  // signs (both sides are paralleled; the device sends the same mode as signA / signB)
   const sideMode = (s, all) => x["sign" + s] ?? all;
   // camel-crossing signs at the crossing
   ["gCA", "gCB"].forEach(id => {
@@ -1531,18 +1515,16 @@ function updateRoad(L, on, cfg) {
       sc(id + n, !wlit ? "" : wm === "fast" ? "blf" : n === "1" ? "bla" : "blb");
     }
   });
-  // camel gate: IR A / IR B beams light up when blocked, the PIR fan when it sees motion; the camel is drawn
-  // at the IR that sees it (in the middle while only the PIR does), with the side it came from
+  // camel gate: IR A / IR B beams light up when blocked; the camel is drawn
+  // at the IR that sees it, with the side it came from
   for (const t of ["A", "B"]) {
     const b = !!x["ir" + t], fitted = cfg["use" + t] !== false;
     sa("gb" + t, "opacity", b ? "1" : ".5");
     sa("gb" + t, "stroke-width", b ? "4" : "2.5");
     sa("ir" + t, "stroke", b ? "#f472b6" : "#cbd5e1");
     stx("g" + t + "t", !L || !on ? "" : !fitted ? `IR ${t}: not fitted` :
-      `IR ${t}: ${b ? "blocked" : "clear"}${x.camelPend === t ? " · waiting for PIR" : ""}${x.camel && x.camelDir === t ? " · camel came from here" : ""}`);
+      `IR ${t}: ${b ? "blocked" : "clear"}${x.camel && x.camelDir === t ? " · camel came from here" : ""}`);
   }
-  sa("pirF", "opacity", x.pir ? ".45" : "0");
-  sa("pirS", "fill", x.pir ? "#c4b5fd" : "#f8fafc");
   sd("fig", !!x.camel);
   sa("fig", "transform", `translate(0 ${x.irA && !x.irB ? 25 : x.irB && !x.irA ? -25 : 0})`);
   // vehicles approaching from each side (HC-SR04 distance on each approach)
@@ -1559,13 +1541,13 @@ function updateRoad(L, on, cfg) {
   $("buzz").querySelector("use").style.stroke = bz ? "var(--red)" : "var(--tx-3)";
   sc("buzz", x.buzz === "fast" ? "blf" : bz ? "bl" : "");
 
-  const sigText = { green: "Green", "green-flash": "Flashing Green", amber: "Amber", red: "Red", off: "Off" };
+  const sigText = { flash: "Flashing", on: "Steady On", off: "Off" };
   const signText = m => ({ flash: "Flashing", fast: "Flashing Fast", on: "Steady On", off: "Off" }[m] || "Off");
-  const sigLabel = (sigText[sig] || sig) + (x.sigLeft ? ` · ${x.sigLeft} s` : "") + (x.test === "signals" ? " (Test)" : "");
+  const sigLabel = (sigText[sig] || sig) + (x.test === "signals" ? " (Test)" : "");
   stx("sAt", !L || !on ? "" : sigLabel);
   stx("sBt", !L || !on ? "" : sigLabel);
   $("roadLegend").innerHTML = !L || !on ? "<span>Waiting For The Device…</span>" :
-    `<span>Signals: <b>${sigLabel}</b></span><span>Warning Signs 300 / 200 / 100 m: <b>A ${signText(sideMode("A", x.signW))} · B ${signText(sideMode("B", x.signW))}</b></span>` +
+    `<span>Yellow Lamp: <b>${sigLabel}</b></span><span>Warning Signs 300 / 200 / 100 m: <b>${signText(x.signW)}</b></span>` +
     `<span>Camel Crossing Sign: <b>${signText(x.signC)}</b></span><span>Buzzer: <b>${tc(x.buzz || "off")}</b></span>`;
 }
 
@@ -1575,7 +1557,7 @@ function render(p) {
   online = p.online;
   if (p.latest) {
     last = p.latest;
-    const pt = { ts: last.ts, camel: +!!last.camel, pir: +!!last.pir, veh: +!!last.veh, lvl: LVL[last.state] ?? 0 };
+    const pt = { ts: last.ts, camel: +!!last.camel, veh: +!!last.veh, lvl: LVL[last.state] ?? 0 };
     if (!chartData.length || chartData[chartData.length - 1].ts !== pt.ts) chartData.push(pt);
     const cutoff = last.ts - WINDOW_S;
     while (chartData.length && chartData[0].ts < cutoff) chartData.shift();
@@ -1603,15 +1585,14 @@ function render(p) {
   $("sideIp").textContent = dv ? (dv.location || (online ? L?.ip : "offline")) : "no device yet";
 
   // tiles
-  // camel gate tile: confirmed camel + its side; gate sensors tile: IR A / PIR / IR B right now
-  $("tA").textContent = !L ? "–" : L.camel ? "CAMEL" : L.camelPend ? "CHECKING" : "CLEAR";
+  // camel gate tile: confirmed camel + its side; gate sensors tile: IR A / IR B right now
+  $("tA").textContent = !L ? "–" : L.camel ? "CAMEL" : "CLEAR";
   $("tA").className = "v" + (L?.camel ? " bad" : "");
-  $("tAS").textContent = !L ? "–" : L.camel ? `From Side ${L.camelDir || "?"} · Confirmed By ${cfg.usePir === false ? "IR (No PIR)" : "IR + PIR"}` :
-    L.camelPend ? `IR ${L.camelPend} Fired · Waiting For PIR` : `${L.unconfCount ?? 0} IR-Only Triggers Ignored`;
+  $("tAS").textContent = !L ? "–" : L.camel ? `From Side ${L.camelDir || "?"} · Confirmed By IR` : "No IR Blocked";
   const onoff = (t, v) => cfg["use" + t] === false ? "–" : v ? "●" : "○";
-  $("tB").textContent = !L ? "–" : L.pir ? "MOTION" : L.irA || L.irB ? "BLOCKED" : "QUIET";
+  $("tB").textContent = !L ? "–" : L.irA || L.irB ? "BLOCKED" : "QUIET";
   $("tB").className = "v";
-  $("tBS").textContent = !L ? "–" : `IR A ${onoff("A", L.irA)} · PIR ${cfg.usePir === false ? "–" : L.pir ? "●" : "○"} · IR B ${onoff("B", L.irB)}`;
+  $("tBS").textContent = !L ? "–" : `IR A ${onoff("A", L.irA)} · IR B ${onoff("B", L.irB)}`;
   const vehTile = t => {
     const v = !!L?.["veh" + t];
     $("tV" + t).textContent = !L ? "–" : v ? "COMING" : "NONE";
@@ -1641,14 +1622,12 @@ function renderLogic(L, cfg, st) {
     return;
   }
   const ir = t => cfg["use" + t] === false ? "Not Fitted" : L["ir" + t] ? "Blocked" : "Clear";
-  const pirOn = cfg.usePir !== false;
-  const gateNow = !!(L.irA || L.irB || L.pir);
+  const gateNow = !!(L.irA || L.irB);
   const rows = [
     ["i-target", "Camel IR A — Side A Edge", ir("A"), !!L.irA],
-    ["i-target", "PIR — Between IR A And B", !pirOn ? "Not Fitted (IR Alone Confirms)" : L.pir ? "Motion" : "No Motion", !!L.pir],
     ["i-target", "Camel IR B — Side B Edge", ir("B"), !!L.irB],
-    ["i-camel", "Camel (IR + PIR Within " + (cfg.pirSec ?? 3) + " s)", L.camel ? `Confirmed · From Side ${L.camelDir || "?"}${gateNow ? "" : " · Held " + (cfg.holdSec ?? 5) + " s"}` :
-      L.camelPend ? `IR ${L.camelPend} Fired · Waiting For PIR` : "None", !!L.camel],
+    ["i-camel", "Camel (IR)", L.camel ? `Confirmed · From Side ${L.camelDir || "?"}${gateNow ? "" : " · Held " + (cfg.holdSec ?? 5) + " s"}` : "None", !!L.camel],
+    ["i-signal", "Yellow Caution Lamp", L.sig === "off" ? "Off" : L.sig === "on" ? "Steady (Test)" : "Always Flashing", false],
     ["i-car", "Car Sensor A — 400 m Point", (L.vehA ? `Car Passed · Coming For ${cfg.approachSec ?? 8} s` : "None") + ` · ${distTxt(L, "A")}`, L.vehA, true],
     ["i-car", "Car Sensor B — 400 m Point", (L.vehB ? `Car Passed · Coming For ${cfg.approachSec ?? 8} s` : "None") + ` · ${distTxt(L, "B")}`, L.vehB, true],
     ["i-alert", "Manual Alert", L.alert ? "On" : "Off", L.alert],
@@ -1660,13 +1639,12 @@ function renderLogic(L, cfg, st) {
   const S = STATES[st] || STATES.CLEAR, res = $("logicRes");
   res.style.setProperty("--hc", S.c);
   res.style.setProperty("--hc-soft", S.cs);
-  const sigNow = { green: "green", "green-flash": "flashing green", amber: "amber", red: "red" }[L.sig] || L.sig;
   const what = `warning signs at 300 / 200 / 100 m ${st === "DANGER" ? "flashing fast" : "flashing"}`;
   res.innerHTML = {
-    DANGER: `<b>DANGER</b> — a hazard is on the road <i>and</i> a car passed the 400 m point of side ${[L.vehA && "A", L.vehB && "B"].filter(Boolean).join(" + ")}: the warning signs on that side flash fast (the other side keeps flashing), buzzer at the crossing sounds. Signals now <b>${sigNow}</b> (the sequence to red is never skipped).`,
-    WARNING: `<b>WARNING</b> — ${esc(hazardText(L.hazard).toLowerCase())} on the road: ${what}. Signals now <b>${sigNow}</b> — green → flashing green → amber → red.`,
-    CLEAR: `<b>CLEAR</b> — no confirmed camel at the gate${L.camelPend ? ` (IR ${L.camelPend} fired, waiting for the PIR)` : ""}: signals <b>${sigNow}</b>${L.sig === "red" || L.sig === "amber" ? " (finishing the sequence, green follows)" : ""}, signs off.`,
-    WARMUP: `<b>WARM-UP</b> — the device just started; signals steady amber for a few seconds.`,
+    DANGER: `<b>DANGER</b> — a hazard is on the road <i>and</i> a car passed the 400 m point of side ${[L.vehA && "A", L.vehB && "B"].filter(Boolean).join(" + ")}: the warning signs flash fast, buzzer at the crossing sounds.`,
+    WARNING: `<b>WARNING</b> — ${esc(hazardText(L.hazard).toLowerCase())} on the road: ${what}.`,
+    CLEAR: `<b>CLEAR</b> — no camel at the gate: signs off, the yellow lamp keeps flashing.`,
+    WARMUP: `<b>WARM-UP</b> — the device just started; detection is armed in a few seconds.`,
   }[st] || "–";
 }
 
@@ -1811,8 +1789,7 @@ function cardInner(d, st) {
         <span class="stag">${esc(tag)}</span></div>
       ${on && L.alert ? `<span class="evtag">MANUAL ALERT</span>` : ""}
       <div class="dmet">
-        <div><span>Camel</span><b>${on ? (L.camel ? "From " + (L.camelDir || "?") : L.camelPend ? "Checking" : "Clear") : "–"}</b></div>
-        <div><span>PIR</span><b>${on ? (L.pir ? "Motion" : "–") : "–"}</b></div>
+        <div><span>Camel</span><b>${on ? (L.camel ? "From " + (L.camelDir || "?") : "Clear") : "–"}</b></div>
         <div><span>Vehicle A</span><b>${on ? (L.vehA ? "Coming" : "–") : "–"}</b></div>
         <div><span>Vehicle B</span><b>${on ? (L.vehB ? "Coming" : "–") : "–"}</b></div>
       </div>
@@ -1834,7 +1811,7 @@ function renderBanner() {
     b.className = "gbanner" + (danger ? "" : " evac");
     html = `<div class="gt"><b>${danger ? "⛔" : "⚠"} ${esc(heroTitle(top.latest.state, top.latest.hazard))} — ${where(top)}</b>` +
       `<span>${hz.length > 1 ? `Also: ${hz.slice(1).map(where).join(", ")}. ` : ""}${alertOn ? "Manual alert is active. " : ""}` +
-      `${danger ? "A vehicle is approaching — signals are red." : "Warning signs are flashing for the drivers."}</span></div>` +
+      `${danger ? "A vehicle is approaching the camel crossing." : "Warning signs are flashing for the drivers."}</span></div>` +
       `<button class="btn sm" data-view="${esc(top.key)}" type="button">View crossing</button>` +
       (alertOn ? `<button class="btn sm" data-stopalert="1" type="button">Stop alert</button>` : "") +
       `<button class="btn sm solid" data-rst="${hz.length > 1 ? "all" : esc(top.key)}" type="button">■ CLEAR${hz.length > 1 ? " all" : ""}</button>`;
@@ -1862,7 +1839,7 @@ async function resetAll() {
   } catch (e) { toast("Could not send CLEAR", e.message, "err"); }
 }
 async function setAlert(on) {
-  if (on && !confirm("Alert ALL crossings?\n\nEvery ESP32 flashes its 300 / 200 / 100 m warning signs and runs its signals to red until you stop it (here, or with CLEAR on a crossing).")) return;
+  if (on && !confirm("Alert ALL crossings?\n\nEvery ESP32 flashes its 300 / 200 / 100 m warning signs until you stop it (here, or with CLEAR on a crossing).")) return;
   try {
     const r = await post("/api/alert", { on });
     toast(on ? "Manual alert started" : "Manual alert stopped",
@@ -1877,7 +1854,6 @@ const ONOFF = { ticks: [0, 1], step: true, min: 0, max: 1, scale: 1, d: 0, unit:
 const LVL_NAMES = ["Clear", "Caution", "Warning", "Danger"];
 const CHARTS = [
   { el: "cHA", key: "camel", color: "#d97706", ...ONOFF, tick: v => v ? "Camel" : "Clear", fmtv: v => v ? "Camel" : "Clear" },
-  { el: "cHB", key: "pir", color: "var(--purple)", ...ONOFF, tick: v => v ? "Motion" : "Quiet", fmtv: v => v ? "Motion" : "Quiet" },
   { el: "cLight", key: "veh", color: "var(--blue)", ...ONOFF, tick: v => v ? "Coming" : "None", fmtv: v => v ? "Coming" : "None" },
   { el: "cLvl", key: "lvl", scale: 1, min: 0, max: 3, color: "var(--red)", unit: "", d: 0, step: true, ticks: [0, 2, 3],
     tick: v => LVL_NAMES[v] || "", fmtv: v => LVL_NAMES[Math.round(v)] || "" },
@@ -2199,7 +2175,7 @@ document.querySelectorAll("form[data-cfg]").forEach(f => {
     let loc = null;
     new FormData(f).forEach((v, k) => {
       if (k.endsWith("%")) cfg[k.slice(0, -1)] = (+v) / 100;
-      else if (["buzzer", "useA", "useB", "usePir"].includes(k)) cfg[k] = v === "1";
+      else if (["buzzer", "useA", "useB"].includes(k)) cfg[k] = v === "1";
       else if (k === "name") cfg[k] = v;
       else if (k === "location") loc = v;      // kept on this PC, not on the device
       else cfg[k] = +v;
@@ -2231,9 +2207,9 @@ function fillSettings(force) {
     if (f.dataset.dirty === "1" && !force) return;
     setVal(f, "name", cfg.name || L?.id);
     setVal(f, "location", dv?.location ?? "");
-    ["carCm", "confirm", "pirSec", "holdSec", "approachSec", "flashSec", "amberSec"]
+    ["carCm", "confirm", "holdSec", "approachSec"]
       .forEach(k => setVal(f, k, cfg[k]));
-    ["buzzer", "useA", "useB", "usePir"].forEach(k => { if (cfg[k] != null) setVal(f, k, cfg[k] ? "1" : "0"); });
+    ["buzzer", "useA", "useB"].forEach(k => { if (cfg[k] != null) setVal(f, k, cfg[k] ? "1" : "0"); });
     if (force) f.dataset.dirty = "";
   });
 
@@ -2259,8 +2235,6 @@ function fillSettings(force) {
   const irTxt = t => !L ? "–" : cfg["use" + t] === false ? "Not Fitted" : L["ir" + t] ? "Blocked (Something In Front)" : "Clear";
   $("irNowA").textContent = irTxt("A");
   $("irNowB").textContent = irTxt("B");
-  $("pirNow").textContent = !L ? "–" : cfg.usePir === false ? "Not Fitted" : L.pir ? "Motion" : "No Motion";
-  $("unconfNow").textContent = !L ? "–" : `${L.unconfCount ?? 0} Since Boot${L.unconfDir ? " · Last At IR " + L.unconfDir : ""}`;
   $("inaSNow").textContent = !L ? "–" : L.pvOk ? `${L.pvV.toFixed(2)} V · ${Math.round(L.pvmA)} mA` : "Not Found";
   $("inaBNow").textContent = !L ? "–" : L.batOk ? `${L.batV.toFixed(2)} V · ${signed(L.batmA, "mA")}` : "Not Found";
 
@@ -2329,13 +2303,12 @@ $("forgetBtn").onclick = async () => {
   catch (e) { toast("Could not remove it", e.message, "err"); }
 };
 /* ---- output test (Settings -> Output test) ---- */
-const TEST_NAMES = { buzzer: "Buzzer", signals: "Traffic Signals", signs: "Warning Signs", leds: "Each LED" };
-// "leds" test: bit 0-15 of the 74HC595 chain -> what that output drives (same as the wiring diagram)
-const LED_NAMES = ["Signal RED", "Signal AMBER", "Signal GREEN", "Warning sign 300 m", "Warning sign 200 m",
-  "Warning sign 100 m", "Camel crossing sign"];
+const TEST_NAMES = { buzzer: "Buzzer", signals: "Yellow Lamp", signs: "Warning Signs", leds: "Each LED" };
+// "leds" test: bit 0-4 of the 74HC595 -> what that output drives (same as the wiring diagram)
+const LED_NAMES = ["Yellow caution lamp (A + B)", "Warning sign 300 m (A + B)", "Warning sign 200 m (A + B)",
+  "Warning sign 100 m (A + B)", "Camel crossing sign (A + B)"];
 function ledText(b) {
-  const chip = b < 8 ? 1 : 2, q = b % 8, pin = q === 0 ? 15 : q;
-  return `Chip #${chip} Q${q} (pin ${pin}) — <b>${LED_NAMES[q]} ${chip === 1 ? "A" : "B"}</b>`;
+  return `Q${b} (pin ${b === 0 ? 15 : b}) — <b>${LED_NAMES[b]}</b>`;
 }
 let testPending = null;   // {out, until}: sent, the device has not reported it yet
 function drawTest() {
@@ -2365,10 +2338,7 @@ function drawTest() {
 async function startTest(out) {
   const dv = selectedDev(), name = dv?.name || "the device";
   let sec = +$("testSec").value;
-  // The signal test cycles green 2 s -> flashing green -> amber -> red 2 s; a shorter test would end
-  // before amber and red are ever shown, so it always runs at least one full cycle.
-  if (out === "signals") sec = Math.max(sec, 4 + (dv?.cfg?.flashSec ?? 3) + (dv?.cfg?.amberSec ?? 3));
-  if (out === "leds") sec = Math.max(sec, 14);   // 14 outputs, 1 s each
+  if (out === "leds") sec = Math.max(sec, 5);   // 5 outputs, 1 s each
   try {
     await post("/api/test", { device: selected, out, sec });
     testPending = { out, until: Date.now() + 8000 };

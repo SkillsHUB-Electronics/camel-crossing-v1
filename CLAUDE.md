@@ -29,8 +29,16 @@
    triggers the roadside lamps of ITS side. User chose (option 1): lamps light only with a camel at the gate; a car at a side's
    400 m point → that side's 300/200/100 m signs + camel sign flash fast (4 Hz) + buzzer for approachSec, other side 1 Hz.
    No camel → car only counted, lamps stay off.
+7. **2026-11-12 (current, firmware 2.4.0): simplification requested by the user (Indonesian).** **PIR removed** (D4 free): a camel
+   = an IR trigger alone (blocked `confirm` readings), direction = first IR. **No red/amber/green signals**: one **yellow lamp that
+   always flashes (1 Hz)**, camel or not, in every state (WARMUP too); side A and B are wired **in parallel on one output**. The
+   300/200/100 m warning signs (and the camel sign) are paralleled between the sides too → **one 74HC595** (not two). HC-SR04 car
+   sensors and the local/cloud dashboard modes are unchanged. Consequences: signs flash 1 Hz with a camel, 4 Hz + buzzer in DANGER
+   (a car at EITHER 400 m sensor; the sides can no longer differ). Not yet compiled for the ESP32 in this environment (no
+   arduino-cli) — compile + hardware-test before trusting it. `proposal/make_proposal.js` (the docx) still describes the old PIR /
+   2-chip / UAE-signal design and was NOT updated.
 
-## What it is (firmware 2.3.1)
+## What it is (firmware 2.4.0; the bullets below still describe 2.3.1 where history item 7 does not override them)
 - **Sensor pins/defaults live in `sensors_config.h`** (new, `#ifndef`-guarded). `config.h` holds the user's real WiFi password:
   **never edit, print or copy it**. Its old sensor names (`PIN_US_*`, `PIN_IR_CAR_*`, `IR_ACTIVE_LOW`, `CAMEL_CM`, `USE_CAMEL_*`,
   `US_CAL_*`) are stale/unused; `US_MIN_CM`, `US_MAX_CM`, `US_FAULT_READINGS`, `CONFIRM_SAMPLES`, `HOLD_SEC`, … are still used.
@@ -44,10 +52,12 @@
   (A0 bridged) between the battery node and the cell (VIN+ node, VIN− cell +). Positive current = panel → charger / charging.
   Chain: panel → INA#1 → TP4056 (with protection) → node → INA#2 → 18650; MT3608 (5.1 V) from the node → VIN.
   mA = shunt reg × 10 / `INA_SHUNT_MOHM` (0.1 Ω), bus V = reg >> 3 × 4 mV; read every 250 ms, EMA 0.3. `INA_*_INVERT` flips a sign.
-- Outputs: **two chained 74HC595, one per direction, same layout**: chip #1 = side A (bits 0–7), chip #2 = side B
-  (bits 8–15); Q0–Q2 signal R/A/G, Q3–Q5 warning signs 300/200/100 m, Q6 camel-crossing sign, Q7 spare. Firmware:
-  `SIDE_A`/`SIDE_B` offsets + `Q_*` and `BOTH(q)`. Buzzer D25 (NPN). Status LED D2. Free: D21/D22, D34, D35, VP, VN.
+- Outputs (2.4.0): **one 74HC595** (`ledsWrite(uint8_t)`): Q0 yellow lamp (`Q_LAMP`), Q1–Q3 warning signs 300/200/100 m, Q4 camel sign,
+  Q5–Q7 spare (`LED_COUNT` 5, `SIGNS_MASK`). Each LED keeps its own 220 Ω, two LEDs (A + B) per output. Buzzer D25 (NPN). Status LED D2. Free: D21/D22, D34, D35, VP, VN.
 - States: WARMUP (3 s), CLEAR, WARNING (camel or manual alert), DANGER (hazard + vehicle sensor fired within `approachSec`).
+  2.4.0 leaves `Settings.pirSec/usePir/flashSec/amberSec` in the struct unused (layout kept, SETTINGS_VERSION still 5); the telemetry no longer sends
+  `pir, camelPend, unconfCount/Dir, sigLeft` or `cfg.pirSec/usePir/flashSec/amberSec`; `sig` = `flash` (`on` during the lamp test), `signA/signB` = `signW`.
+  Output test `leds` runs Q0–Q4 (5 s). Faults: `PIR` gone.
   CAUTION is still in the enum but unused. **Decision on the ESP32 only**; the dashboard monitors/logs/configures.
 
 ## Layout
